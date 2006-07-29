@@ -3,6 +3,7 @@ module Evaluator where
 
 
 import Data
+import Data.Char
 import System.IO
 import System.Process
 import System.Directory
@@ -31,7 +32,9 @@ startEvaluator dat@Data{txtOut=txtOut} = do
                 hSetBinaryMode out True
                 hSetBinaryMode err True
 
+                appendText dat "Loading Hugs..."
                 hPutStrLn inp $ ":set -p\"" ++ prompt ++ "\""
+                hPutStrLn inp $ "putChar '\\01'"
 
                 forkIO (f out)
                 forkIO (f err)
@@ -42,7 +45,7 @@ startEvaluator dat@Data{txtOut=txtOut} = do
                  g x
     
         f x = do c <- hGetContents x
-                 mapM_ app $ parseEscapeCodes $ filter (/= '\r') c
+                 mapM_ app $ parseEscapeCodes $ filter (/= '\r') $ tail $ dropWhile (/= '\01') c
 
         app (Left c) = appendText dat [c]
         app (Right e) = applyEscape dat e

@@ -37,7 +37,7 @@ setupFonts dat@Data{txtOut=txtOut, txtIn=txtIn} = do
     
     tagGreen <- textTagNew "fgGreen"
     textTagTableAdd tags tagGreen
-    set tagGreen [textTagForeground := "Green"]
+    set tagGreen [textTagForeground := "#008000"]
     
     fdesc <- fontDescriptionNew
     fontDescriptionSetFamily fdesc "Monospace"
