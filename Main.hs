@@ -19,7 +19,7 @@ import Evaluator
 main = do
     initPropLang
     window <- getWindow "res/guihaskell.glade" "wndMain"
-    running <- newVar False
+    running <- newVar True
     filename <- newVar Nothing
     tags <- newVar []
     
@@ -53,6 +53,7 @@ runCommand :: Data -> Handle -> IO ()
 runCommand dat@Data{txtOut=txtOut, txtIn=txtIn} hndl = do
     s <- getVar (txtIn!text)
     appendText dat (s ++ "\n")
+    running dat -< True
     forkIO (hPutStrLn hndl s)
     return ()
 

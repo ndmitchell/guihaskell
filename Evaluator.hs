@@ -9,6 +9,7 @@ import System.Process
 import System.Directory
 import Control.Concurrent
 import PropLang.Gtk
+import PropLang.Variable
 
 import Text.EscapeCodes
 
@@ -48,6 +49,7 @@ startEvaluator dat@Data{txtOut=txtOut} = do
                  mapM_ app $ parseEscapeCodes $ filter (/= '\r') $ tail $ dropWhile (/= '\01') c
 
         app (Left c) = appendText dat [c]
+        app (Right (FormatUnknown 50)) = running dat -< False
         app (Right e) = applyEscape dat e
 
 
