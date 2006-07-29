@@ -7,6 +7,8 @@ import PropLang.Event
 
 import Text.EscapeCodes
 
+import Control.Monad
+
 
 import Graphics.UI.Gtk hiding (Action, Window, TextView, ToolButton, Event, onClicked)
 
@@ -63,3 +65,7 @@ applyEscape :: Data -> EscapeCode -> IO ()
 applyEscape dat (FormatAttribute Normal) = outputTags dat -< []
 applyEscape dat (FormatForeground Green) = outputTags dat -< ["fgGreen"]
 applyEscape dat _ = return ()
+
+
+
+when_ b x = when b (x >> return ())

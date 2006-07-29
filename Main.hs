@@ -40,12 +40,13 @@ setupRelations dat@Data{tbRun=tbRun,tbStop=tbStop, txtIn=txtIn,
     } = do
 
     inp <- startEvaluator dat
-    tbRun!onClicked += runCommand dat inp
+    when_ (isJust inp) $ do
+        tbRun!onClicked += runCommand dat (fromJust inp)
+        onEnterKey txtIn (runCommand dat (fromJust inp))
     
     tbRun!enabled =< with1 running not
     tbStop!enabled =<= running
     
-    onEnterKey txtIn (runCommand dat inp)
 
 
 runCommand :: Data -> Handle -> IO ()
