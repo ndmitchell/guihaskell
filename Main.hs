@@ -40,7 +40,9 @@ main = do
     case res of
         Nothing -> return ()
         Just (pid,inp) -> do
-            hPutStrLn inp "\n:quit"
+            hPutStrLn inp "\n:quit\n"
+            waitForProcess pid
+            return ()
 
 
 setupRelations dat@Data{tbRun=tbRun,tbStop=tbStop, txtIn=txtIn,
