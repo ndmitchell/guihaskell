@@ -2,13 +2,14 @@
 module Text.EscapeCodes where
 
 import Data.Char
+import Data.Maybe
 
 
 data Attribute = Normal | Bold | Underline | Blink | Reverse | Invisible
                  deriving (Show, Eq)
 
 data Color = Black | Red | Green | Yellow | Blue | Magenta | Cyan | White
-             deriving (Show, Eq, Enum)
+             deriving (Show, Eq, Enum, Bounded)
 
 
 data EscapeCode = FormatAttribute Attribute
@@ -52,3 +53,17 @@ parseEscapeCodes x = f 0 x
                    (5, Blink),
                    (7, Reverse),
                    (8, Invisible)]
+
+
+getColor :: Color -> (Int,Int,Int)
+getColor x = case lookup x colors of
+                 Nothing -> (0,0,0)
+                 Just x -> x
+    where
+        colors = [(Black, (0,0,0)),
+                  (Red, (h,0,0)),
+                  (Green, (0,h,0)),
+                  (White, (f,f,f))]
+        
+        h = 0x80
+        f = 0xff

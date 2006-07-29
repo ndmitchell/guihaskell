@@ -42,16 +42,19 @@ startEvaluator dat@Data{txtOut=txtOut} = do
                                 else ":set prompt " ++ prompt
                 hPutStrLn inp $ "putChar '\\01'"
 
-                forkIO (f out)
-                forkIO (f err)
+                forkIO (readOut out)
+                forkIO (readErr err)
                 return $ Just (pid,inp)
     where
-        g x = do threadDelay $ 10000 * 20
-                 hPutStrLn x ":version"
-                 g x
-    
-        f x = do c <- hGetContents x
-                 mapM_ app $ parseEscapeCodes $ filter (/= '\r') $ tail $ dropWhile (/= '\01') c
+        readOut hndl = do
+            c <- hGetContents hndl
+            let c2 = filter (/= '\r') $ tail $ dropWhile (/= '\01') c
+            mapM_ app $ parseEscapeCodes c2
+
+        readErr hndl = do
+            c <- hGetContents hndl
+            let c2 = filter (/= '\r') c
+            mapM_ (\x -> appendRed dat [x]) c2
 
         app (Left c) = appendText dat [c]
         app (Right (FormatUnknown 50)) = running dat -< False

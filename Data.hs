@@ -8,7 +8,7 @@ import PropLang.Event
 import Text.EscapeCodes
 
 import Control.Monad
-
+import Numeric
 
 import Graphics.UI.Gtk hiding (Action, Window, TextView, ToolButton, Event, onClicked)
 
@@ -35,15 +35,27 @@ setupFonts dat@Data{txtOut=txtOut, txtIn=txtIn} = do
     buf <- textviewBuffer txtOut
     tags <- textBufferGetTagTable buf
     
-    tagGreen <- textTagNew "fgGreen"
-    textTagTableAdd tags tagGreen
-    set tagGreen [textTagForeground := "#008000"]
-    
+    mapM (addTags tags) [minBound..maxBound]
+
     fdesc <- fontDescriptionNew
     fontDescriptionSetFamily fdesc "Monospace"
 
     widgetModifyFont (getTextViewRaw txtOut) (Just fdesc)
     widgetModifyFont (getTextViewRaw txtIn) (Just fdesc)
+
+    where
+        addTags tags col = do
+            let name = show col
+                (r,g,b) = getColor col
+                f x = let xs = showHex x "" in ['0' | length xs == 1] ++ xs
+                css = "#" ++ f r ++ f g ++ f b
+            
+            tagFg <- textTagNew ("fg" ++ name)
+            tagBg <- textTagNew ("bg" ++ name)
+            textTagTableAdd tags tagFg
+            textTagTableAdd tags tagBg
+            set tagFg [textTagForeground := css]
+            set tagBg [textTagBackground := css]
 
 
 appendText :: Data -> String -> IO ()
@@ -59,6 +71,15 @@ appendText dat@Data{txtOut=txtOut} s = do
     mapM_ (f buf strt end) tags
     where
         f buf strt end tag = textBufferApplyTagByName buf tag strt end
+
+
+appendRed :: Data -> String -> IO ()
+appendRed dat msg = do
+    let tags = outputTags dat
+    res <- getVar tags
+    tags -< ["fgRed"]
+    appendText dat msg
+    tags -< res
 
 
 applyEscape :: Data -> EscapeCode -> IO ()

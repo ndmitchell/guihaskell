@@ -12,6 +12,7 @@ import Control.Concurrent
 import Graphics.UI.Gtk.Windows.Dialog
 
 import System.Posix.Signals
+import System.Process
 
 
 import Data
@@ -32,9 +33,14 @@ main = do
                   running filename tags
 
     setupFonts dat
-    setupRelations dat
+    res <- setupRelations dat
 
     showWindowMain window
+    
+    case res of
+        Nothing -> return ()
+        Just (pid,inp) -> do
+            hPutStrLn inp "\n:quit"
 
 
 setupRelations dat@Data{tbRun=tbRun,tbStop=tbStop, txtIn=txtIn,
@@ -45,17 +51,19 @@ setupRelations dat@Data{tbRun=tbRun,tbStop=tbStop, txtIn=txtIn,
     case proc of
         Nothing -> return ()
         Just (pid,inp) -> do
-            tbRun!onClicked += runCommand dat inp
+            tbRun!onClicked += fireCommand dat inp
             -- tbStop!onClicked += stopCommand dat pid
-            onEnterKey txtIn $ runCommand dat inp
+            onEnterKey txtIn $ fireCommand dat inp
     
     tbRun!enabled =< with1 running not
     tbStop!enabled =<= running
     
+    return proc
+    
 
 
-runCommand :: Data -> Handle -> IO ()
-runCommand dat@Data{txtOut=txtOut, txtIn=txtIn} hndl = do
+fireCommand :: Data -> Handle -> IO ()
+fireCommand dat@Data{txtOut=txtOut, txtIn=txtIn} hndl = do
     s <- getVar (txtIn!text)
     appendText dat (s ++ "\n")
     running dat -< True
