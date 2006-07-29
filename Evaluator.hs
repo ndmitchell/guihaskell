@@ -17,9 +17,12 @@ import Text.EscapeCodes
 prompt = "\x1B[0;32m%s>\x1B[0m \x1B[50m"
 
 
-startEvaluator :: Data -> IO (Maybe Handle)
+useHugs = False
+
+
+startEvaluator :: Data -> IO (Maybe (ProcessHandle, Handle))
 startEvaluator dat@Data{txtOut=txtOut} = do
-        hugs <- getHugsPath
+        hugs <- if useHugs then getHugsPath else getGHCiPath
         case hugs of
             Nothing -> do
                 appendText dat "Hugs not found, please install"
@@ -33,13 +36,15 @@ startEvaluator dat@Data{txtOut=txtOut} = do
                 hSetBinaryMode out True
                 hSetBinaryMode err True
 
-                appendText dat "Loading Hugs..."
-                hPutStrLn inp $ ":set -p\"" ++ prompt ++ "\""
+                appendText dat $ "Loading " ++ if useHugs then "Hugs..." else "GHCi...\n"
+                hPutStrLn inp $ if useHugs
+                                then ":set -p\"" ++ prompt ++ "\""
+                                else ":set prompt " ++ prompt
                 hPutStrLn inp $ "putChar '\\01'"
 
                 forkIO (f out)
                 forkIO (f err)
-                return $ Just inp
+                return $ Just (pid,inp)
     where
         g x = do threadDelay $ 10000 * 20
                  hPutStrLn x ":version"
@@ -56,7 +61,7 @@ startEvaluator dat@Data{txtOut=txtOut} = do
 
 getHugsPath :: IO (Maybe FilePath)
 getHugsPath = do
-    path <- findExecutable "hugs.exe"
+    path <- findExecutable "hugs"
     case path of
         Just x -> return $ Just x
         Nothing -> do
@@ -64,4 +69,8 @@ getHugsPath = do
             res <- mapM doesFileExist guesses
             let ans = map snd $ filter fst $ zip res guesses
             return $ if null ans then Nothing else Just (head ans)
+
+
+getGHCiPath :: IO (Maybe FilePath)
+getGHCiPath = findExecutable "ghci"
 

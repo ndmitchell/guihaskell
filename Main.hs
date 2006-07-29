@@ -11,6 +11,8 @@ import Control.Concurrent
 
 import Graphics.UI.Gtk.Windows.Dialog
 
+import System.Posix.Signals
+
 
 import Data
 import Evaluator
@@ -39,10 +41,13 @@ setupRelations dat@Data{tbRun=tbRun,tbStop=tbStop, txtIn=txtIn,
     running=running
     } = do
 
-    inp <- startEvaluator dat
-    when_ (isJust inp) $ do
-        tbRun!onClicked += runCommand dat (fromJust inp)
-        onEnterKey txtIn (runCommand dat (fromJust inp))
+    proc <- startEvaluator dat
+    case proc of
+        Nothing -> return ()
+        Just (pid,inp) -> do
+            tbRun!onClicked += runCommand dat inp
+            -- tbStop!onClicked += stopCommand dat pid
+            onEnterKey txtIn $ runCommand dat inp
     
     tbRun!enabled =< with1 running not
     tbStop!enabled =<= running
@@ -57,4 +62,7 @@ runCommand dat@Data{txtOut=txtOut, txtIn=txtIn} hndl = do
     forkIO (hPutStrLn hndl s)
     return ()
 
-    
+{-
+stopCommand :: Data -> ProcessHandle -> IO ()
+stopCommand dat pid = signalProcess sigINT pid
+-}
