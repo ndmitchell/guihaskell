@@ -17,7 +17,7 @@ import Text.EscapeCodes
 prompt = "\x1B[0;32m%s>\x1B[0m \x1B[50m"
 
 
-useHugs = False
+useHugs = True
 
 
 startEvaluator :: Data -> IO (Maybe (ProcessHandle, Handle))
