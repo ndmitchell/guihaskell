@@ -50,8 +50,8 @@ setupFonts dat@Data{txtOut=txtOut, txtIn=txtIn} = do
                 f x = let xs = showHex x "" in ['0' | length xs == 1] ++ xs
                 css = "#" ++ f r ++ f g ++ f b
             
-            tagFg <- textTagNew ("fg" ++ name)
-            tagBg <- textTagNew ("bg" ++ name)
+            tagFg <- textTagNew (Just $ "fg" ++ name)
+            tagBg <- textTagNew (Just $ "bg" ++ name)
             textTagTableAdd tags tagFg
             textTagTableAdd tags tagBg
             set tagFg [textTagForeground := css]
