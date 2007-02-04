@@ -9,10 +9,11 @@ import System.Process
 import GHC.Handle
 import GHC.IOBase
 import Control.Concurrent.MVar
-
+import Control.Concurrent
 
 main = do
-        initGUI
+        unsafeInitGUIForThreadedRTS
+
     
         dialogXmlM <- xmlNew "gtkconsole.glade"
         let dialogXml = case dialogXmlM of
@@ -26,12 +27,12 @@ main = do
 
         wnd `onDestroy` mainQuit
         widgetShowAll wnd
-        cmd `onClicked` setupProcess
+        cmd `onClicked` (setupProcess txt >> appendText txt "hello!")
         
         mainGUI
 
 
-setupProcess = do 
+setupProcess txt = do 
         (inp,out,err,pid) <- runInteractiveCommand "ghci"
         putStrLn "Starting interactive command"
         hSetBuffering out NoBuffering
@@ -39,62 +40,22 @@ setupProcess = do
         hSetBuffering inp NoBuffering
         hSetBinaryMode out True
         hSetBinaryMode err True
-
-        (fd,buf) <- handleToFd out
-
-{-
-        c <- readCharFd fd buf
-        print c
         
-        c <- readCharFd fd buf
-        print c
         
-        c <- readCharFd fd buf
-        print c
--}        
-        inputAdd fd [IOIn] 0 (do print "hello" ; c <- readCharFd fd buf; print c; return True)
+        forkIO (readFrom out inp txt)
+        forkIO (readFrom err inp txt)
         return ()
 
 
-handleToFd :: Handle -> IO (FD, IORef Buffer)
-handleToFd (FileHandle a b) = do print "hellow" ; h <- readMVar b ; print "goodbye" ; return (haFD h, haBuffer h)
-handleToFd (DuplexHandle a b c) = error $ "DuplexHandle: " ++ a
+
+appendText :: TextView -> String -> IO ()
+appendText txtOut s = do
+    buf <- textViewGetBuffer txtOut
+    end <- textBufferGetEndIter buf
+    textBufferInsert buf end s
 
 
-readCharFd :: FD -> IORef Buffer -> IO Char
-readCharFd fd ref = do
-    buf <- readIORef ref
-    let raw = bufBuf buf
-    r <- readRawBuffer "hGetChar" (fromIntegral fd) False raw 0 1
-    if r == 0 then ioe_EOF else do
-        (c,_) <- readCharFromBuffer raw 0
-        return c
-
-
-
-{-
--- A normal handle to a file
-    FilePath            -- the file (invariant)
-    !(MVar Handle__)
-
-  | DuplexHandle            -- A handle to a read/write stream
-    FilePath            -- file for a FIFO, otherwise some
-                    --   descriptive string.
-    !(MVar Handle__)        -- The read side
-    !(MVar Handle__)        -- The write side
-h = 
-
-
-
-withHandle "handleToFd" h $ \ h_ -> do
-  -- converting a Handle into an Fd effectively means
-  -- letting go of the Handle; it is put into a closed
-  -- state as a result. 
-  let fd = haFD h_
-  flushWriteBufferOnly h_
-  unlockFile (fromIntegral fd)
-    -- setting the Handle's fd to (-1) as well as its 'type'
-    -- to closed, is enough to disable the finalizer that
-    -- eventually is run on the Handle.
-  return (h_{haFD= (-1),haType=ClosedHandle}, Fd (fromIntegral fd))
--}
+readFrom hndl x txt = do
+    c <- hGetChar hndl
+    postGUIAsync $ appendText txt [c]
+    readFrom hndl x txt
