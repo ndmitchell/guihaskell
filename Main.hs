@@ -25,15 +25,17 @@ main = do
     running <- newVar True
     filename <- newVar Nothing
     tags <- newVar []
-    
+    compiler <- newVar "Hugs"
+
     let f x = getCtrl window x
         dat = Data window
                   (f "txtOut") (f "txtIn") (f "sb")
                   (f "tbRun") (f "tbOpen") (f "tbStop") (f "tbRecent")
                   running filename tags
 
+    setupDialog dat compiler
     setupFonts dat
-    res <- setupRelations dat
+    res <- setupRelations dat compiler
 
     showWindowMain window
     
@@ -47,9 +49,9 @@ main = do
 
 setupRelations dat@Data{tbRun=tbRun,tbStop=tbStop, txtIn=txtIn,
     running=running
-    } = do
+    } compiler = do
 
-    proc <- startEvaluator dat
+    proc <- startEvaluator dat compiler
     case proc of
         Nothing -> return ()
         Just (pid,inp) -> do
