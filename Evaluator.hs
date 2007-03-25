@@ -17,11 +17,18 @@ import Text.EscapeCodes
 prompt = "\x1B[0;32m%s>\x1B[0m \x1B[50m"
 
 
-useHugs = True
+setCompiler :: Maybe String -> Var String -> IO ()
+setCompiler str compiler =
+    case str of
+	Nothing -> do
+	    compiler -< defaultCompiler
+	Just x -> do
+	    compiler -< x
+    where defaultCompiler = "Hugs"
 
-
-startEvaluator :: Data -> IO (Maybe (ProcessHandle, Handle))
-startEvaluator dat@Data{txtOut=txtOut} = do
+startEvaluator :: Data -> Var String -> IO (Maybe (ProcessHandle, Handle))
+startEvaluator dat@Data{txtOut=txtOut} compiler = do
+	useHugs <- isHugs
         hugs <- if useHugs then getHugsPath else getGHCiPath
         case hugs of
             Nothing -> do
@@ -59,6 +66,13 @@ startEvaluator dat@Data{txtOut=txtOut} = do
         app (Left c) = appendText dat [c]
         app (Right (FormatUnknown 50)) = running dat -< False
         app (Right e) = applyEscape dat e
+
+	isHugs = do
+	    compStr <- getVar compiler
+	    case compStr of
+		"Hugs" -> return True
+		_      -> return False
+	    
 
 
 
