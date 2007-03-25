@@ -10,6 +10,9 @@ import System.IO
 import Control.Concurrent
 
 import Graphics.UI.Gtk.Windows.Dialog
+import Graphics.UI.Gtk.Abstract.Widget
+import Graphics.UI.Gtk.MenuComboToolbar.ComboBox
+import Graphics.UI.Gtk.Glade
 
 import System.Posix.Signals
 import System.Process
@@ -46,6 +49,19 @@ main = do
             waitForProcess pid
             return ()
 
+setupDialog dat@Data{tbRun=tbRun,tbStop=tbStop,tbCompiler=tbCompiler,txtIn=txtIn,running=running} compiler = do
+    Just xml <- xmlNew "res/compilerdialog.glade"
+    dialog   <- xmlGetWidget xml castToDialog "compilerDialog"
+    combo    <- xmlGetWidget xml castToComboBox "compilerSelection"
+    response <- dialogRun dialog
+    handleResponse combo response
+    widgetHide dialog
+      where 
+	  handleResponse combo response = 
+	      case response of
+		  ResponseNone   -> setCompiler Nothing compiler
+		  ResponseCancel -> setCompiler Nothing compiler
+		  ResponseOk   -> flip setCompiler compiler =<< comboBoxGetActiveText combo
 
 setupRelations dat@Data{tbRun=tbRun,tbStop=tbStop, txtIn=txtIn,
     running=running
