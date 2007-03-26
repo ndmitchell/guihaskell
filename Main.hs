@@ -49,7 +49,7 @@ main = do
             waitForProcess pid
             return ()
 
-setupDialog dat@Data{tbRun=tbRun,tbStop=tbStop,tbCompiler=tbCompiler,txtIn=txtIn,running=running} compiler = do
+setupDialog dat@Data{tbRun=tbRun,tbStop=tbStop,txtIn=txtIn,running=running} compiler = do
     Just xml <- xmlNew "res/compilerdialog.glade"
     dialog   <- xmlGetWidget xml castToDialog "compilerDialog"
     combo    <- xmlGetWidget xml castToComboBox "compilerSelection"
