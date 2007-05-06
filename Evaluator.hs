@@ -26,8 +26,8 @@ setCompiler str compiler =
 	    compiler -< x
     where defaultCompiler = "Hugs"
 
-startEvaluator :: Data -> Var String -> IO (Maybe (ProcessHandle, Handle))
-startEvaluator dat@Data{txtOut=txtOut} compiler = do
+startEvaluator :: Data -> IO (Maybe (ProcessHandle, Handle))
+startEvaluator dat@Data{txtOut=txtOut,compiler=compiler} = do
 	useHugs <- isHugs
         hugs <- if useHugs then getHugsPath else getGHCiPath
         case hugs of

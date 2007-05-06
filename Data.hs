@@ -26,7 +26,8 @@ data Data = Data {
 
     running :: Var Bool, -- is the code executing
     filename :: Var (Maybe String), -- the main file loaded
-    outputTags :: Var [String]
+    outputTags :: Var [String],
+    compiler :: Var String
     }
 
 

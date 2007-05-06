@@ -33,12 +33,12 @@ main = do
     let f x = getCtrl window x
         dat = Data window
                   (f "txtOut") (f "txtIn") (f "sb")
-                  (f "tbRun") (f "tbOpen") (f "tbStop") (f "tbRecent")
-                  running filename tags
+                  (f "tbRun") (f "tbOpen") (f "tbStop") (f "tbRecent") (f "tbCompiler")
+                  running filename tags compiler
 
-    setupDialog dat compiler
+    setupDialog dat
     setupFonts dat
-    res <- setupRelations dat compiler
+    res <- setupRelations dat
 
     showWindowMain window
     
@@ -49,7 +49,7 @@ main = do
             waitForProcess pid
             return ()
 
-setupDialog dat@Data{tbRun=tbRun,tbStop=tbStop,txtIn=txtIn,running=running} compiler = do
+setupDialog dat@Data{tbRun=tbRun,tbStop=tbStop,txtIn=txtIn,running=running,compiler=compiler} = do
     Just xml <- xmlNew "res/compilerdialog.glade"
     dialog   <- xmlGetWidget xml castToDialog "compilerDialog"
     combo    <- xmlGetWidget xml castToComboBox "compilerSelection"
@@ -63,11 +63,12 @@ setupDialog dat@Data{tbRun=tbRun,tbStop=tbStop,txtIn=txtIn,running=running} comp
 		  ResponseCancel -> setCompiler Nothing compiler
 		  ResponseOk   -> flip setCompiler compiler =<< comboBoxGetActiveText combo
 
-setupRelations dat@Data{tbRun=tbRun,tbStop=tbStop, txtIn=txtIn,
-    running=running
-    } compiler = do
+setupRelations dat@Data{tbRun=tbRun,tbStop=tbStop,tbCompiler=tbCompiler,txtIn=txtIn,
+    running=running,
+    compiler=compiler
+    } = do
 
-    proc <- startEvaluator dat compiler
+    proc <- startEvaluator dat
     case proc of
         Nothing -> return ()
         Just (pid,inp) -> do
