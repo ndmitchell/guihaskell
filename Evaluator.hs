@@ -17,7 +17,7 @@ import Text.EscapeCodes
 prompt = "\x1B[0;32m%s>\x1B[0m \x1B[50m"
 
 
-setCompiler :: Maybe String -> Var String -> IO ()
+setCompiler :: Maybe Compiler -> Var String -> IO ()
 setCompiler str compiler =
     case str of
 	Nothing -> do

@@ -27,9 +27,10 @@ data Data = Data {
     running :: Var Bool, -- is the code executing
     filename :: Var (Maybe String), -- the main file loaded
     outputTags :: Var [String],
-    compiler :: Var String
+    compiler :: Var Compiler
     }
 
+type Compiler = String
 
 setupFonts :: Data -> IO ()
 setupFonts dat@Data{txtOut=txtOut, txtIn=txtIn} = do
