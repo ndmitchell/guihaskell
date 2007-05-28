@@ -28,11 +28,11 @@ setCompiler str compiler =
 
 startEvaluator :: Data -> IO (Maybe (ProcessHandle, Handle))
 startEvaluator dat@Data{txtOut=txtOut,compiler=compiler} = do
-	useHugs <- isHugs
-        hugs <- if useHugs then getHugsPath else getGHCiPath
-        case hugs of
+	compStr <- getVar compiler
+	path <- getCompilerPath compStr
+        case path of
             Nothing -> do
-                appendText dat "Hugs not found, please install"
+                appendText dat "Compiler not found, please install"
                 return Nothing
             Just x -> do
                 (inp,out,err,pid) <- runInteractiveCommand ("\"" ++ x ++ "\"")
@@ -43,10 +43,10 @@ startEvaluator dat@Data{txtOut=txtOut,compiler=compiler} = do
                 hSetBinaryMode out True
                 hSetBinaryMode err True
 
-                appendText dat $ "Loading " ++ if useHugs then "Hugs..." else "GHCi...\n"
-                hPutStrLn inp $ if useHugs
-                                then ":set -p\"" ++ prompt ++ "\""
-                                else ":set prompt " ++ prompt
+                appendText dat $ "Loading " ++ compStr ++ "...\n"
+                hPutStrLn inp $ case compStr of
+				  "Hugs" -> ":set -p\"" ++ prompt ++ "\""
+				  "GHCI" -> ":set prompt " ++ prompt
                 hPutStrLn inp $ "putChar '\\01'"
 
                 forkIO (readOut out)
@@ -67,13 +67,10 @@ startEvaluator dat@Data{txtOut=txtOut,compiler=compiler} = do
         app (Right (FormatUnknown 50)) = running dat -< False
         app (Right e) = applyEscape dat e
 
-	isHugs = do
-	    compStr <- getVar compiler
-	    case compStr of
-		"Hugs" -> return True
-		_      -> return False
-	    
-
+	getCompilerPath c = do
+	    case c of
+		"Hugs" -> getHugsPath
+		"GHCI" -> getGHCiPath
 
 
 getHugsPath :: IO (Maybe FilePath)
