@@ -68,7 +68,10 @@
 	<widget class="GtkComboBox" id="compilerSelection">
 	  <property name="visible">True</property>
 	  <property name="items" translatable="yes">Hugs
-GHCI</property>
+GHCI
+Nhc
+Yhc
+Jhc</property>
 	  <property name="add_tearoffs">False</property>
 	  <property name="focus_on_click">True</property>
 	</widget>

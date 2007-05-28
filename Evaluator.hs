@@ -70,7 +70,9 @@ startEvaluator dat@Data{txtOut=txtOut,compiler=compiler} = do
 	getCompilerPath c = do
 	    case c of
 		"Hugs" -> getHugsPath
-		"GHCI" -> getGHCiPath
+		--"GHCI" -> getGHCiPath
+		_      -> getOtherPath c
+		
 
 
 getHugsPath :: IO (Maybe FilePath)
@@ -88,3 +90,5 @@ getHugsPath = do
 getGHCiPath :: IO (Maybe FilePath)
 getGHCiPath = findExecutable "ghci"
 
+getOtherPath :: String -> IO (Maybe FilePath)
+getOtherPath = findExecutable . map toLower
