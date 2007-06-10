@@ -26,14 +26,14 @@ setCompiler str compiler =
 	    compiler -< x
     where defaultCompiler = "Hugs"
 
-startEvaluator :: Data -> IO (Maybe (ProcessHandle, Handle))
-startEvaluator dat@Data{txtOut=txtOut,compiler=compiler} = do
+startEvaluator :: Data -> IO ()
+startEvaluator dat@Data{txtOut=txtOut,compiler=compiler,cHandles=cHandles} = do
 	compStr <- getVar compiler
 	path <- getCompilerPath compStr
         case path of
             Nothing -> do
                 appendText dat "Compiler not found, please install"
-                return Nothing
+                return ()
             Just x -> do
                 (inp,out,err,pid) <- runInteractiveCommand ("\"" ++ x ++ "\"")
                 putStrLn "Starting interactive command"
@@ -51,7 +51,8 @@ startEvaluator dat@Data{txtOut=txtOut,compiler=compiler} = do
 
                 forkIO (readOut out)
                 forkIO (readErr err)
-                return $ Just (pid,inp)
+		cHandles -< Just (pid,inp)
+		return ()
     where
         readOut hndl = do
             c <- hGetContents hndl
@@ -72,8 +73,16 @@ startEvaluator dat@Data{txtOut=txtOut,compiler=compiler} = do
 		"Hugs" -> getHugsPath
 		--"GHCI" -> getGHCiPath
 		_      -> getOtherPath c
-		
 
+stopEvaluator :: Data -> IO ()
+stopEvaluator dat@Data{cHandles=cHandles} = do
+    handles <- getVar cHandles
+    case handles of
+	Nothing -> return ()
+	Just (pid,inp) -> do
+	    hPutStrLn inp "\n:quit\n"
+	    waitForProcess pid
+	    return ()	
 
 getHugsPath :: IO (Maybe FilePath)
 getHugsPath = do

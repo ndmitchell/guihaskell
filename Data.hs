@@ -5,6 +5,8 @@ import PropLang.Gtk
 import PropLang.Variable
 import PropLang.Event
 
+import System.IO (Handle)
+import System.Process
 import Text.EscapeCodes
 
 import Control.Monad
@@ -27,8 +29,12 @@ data Data = Data {
     running :: Var Bool, -- is the code executing
     filename :: Var (Maybe String), -- the main file loaded
     outputTags :: Var [String],
-    compiler :: Var Compiler
+    compiler :: Var Compiler,
+    cHandles :: Var (Maybe (ProcessHandle, Handle))
     }
+
+instance Eq ProcessHandle where
+    x == y = False -- Obviously a hack
 
 type Compiler = String
 
