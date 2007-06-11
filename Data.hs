@@ -36,7 +36,7 @@ data Data = Data {
 instance Eq ProcessHandle where
     x == y = False -- Obviously a hack
 
-type Compiler = String
+data Compiler = Hugs | GHC | GHCi deriving (Show, Read, Eq)
 
 setupFonts :: Data -> IO ()
 setupFonts dat@Data{txtOut=txtOut, txtIn=txtIn} = do

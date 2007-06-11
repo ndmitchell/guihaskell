@@ -28,7 +28,7 @@ main = do
     running <- newVar True
     filename <- newVar Nothing
     tags <- newVar []
-    compiler <- newVar "Hugs"
+    compiler <- newVar Hugs
     cHandles <- newVar Nothing
 
     let f x = getCtrl window x
@@ -65,7 +65,7 @@ setupDialog dat@Data{tbRun=tbRun,tbStop=tbStop,txtIn=txtIn,running=running,compi
 	      case response of
 		  ResponseNone   -> setCompiler Nothing compiler
 		  ResponseCancel -> setCompiler Nothing compiler
-		  ResponseOk   -> flip setCompiler compiler =<< comboBoxGetActiveText combo
+		  ResponseOk     -> flip setCompiler compiler =<< comboBoxGetActiveText combo
 
 setupRelations :: Data -> IO ()
 setupRelations dat@Data{tbRun=tbRun,tbStop=tbStop,tbCompiler=tbCompiler,txtIn=txtIn,

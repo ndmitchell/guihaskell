@@ -17,19 +17,19 @@ import Text.EscapeCodes
 prompt = "\x1B[0;32m%s>\x1B[0m \x1B[50m"
 
 
-setCompiler :: Maybe Compiler -> Var String -> IO ()
-setCompiler str compiler =
-    case str of
+setCompiler :: Maybe String -> Var Compiler -> IO ()
+setCompiler m var =
+    case m of
 	Nothing -> do
-	    compiler -< defaultCompiler
+	    var -< defaultCompiler
 	Just x -> do
-	    compiler -< x
-    where defaultCompiler = "Hugs"
+	    var -< read x
+    where defaultCompiler = Hugs
 
 startEvaluator :: Data -> IO ()
 startEvaluator dat@Data{txtOut=txtOut,compiler=compiler,cHandles=cHandles} = do
-	compStr <- getVar compiler
-	path <- getCompilerPath compStr
+	c <- getVar compiler
+	path <- getCompilerPath c
         case path of
             Nothing -> do
                 appendText dat "Compiler not found, please install"
@@ -43,10 +43,10 @@ startEvaluator dat@Data{txtOut=txtOut,compiler=compiler,cHandles=cHandles} = do
                 hSetBinaryMode out True
                 hSetBinaryMode err True
 
-                appendText dat $ "Loading " ++ compStr ++ "...\n"
-                hPutStrLn inp $ case compStr of
-				  "Hugs" -> ":set -p\"" ++ prompt ++ "\""
-				  "GHCI" -> ":set prompt " ++ prompt
+                appendText dat $ "Loading " ++ show c ++ "...\n"
+                hPutStrLn inp $ case c of
+				  Hugs -> ":set -p\"" ++ prompt ++ "\""
+				  GHCi -> ":set prompt " ++ prompt
                 hPutStrLn inp $ "putChar '\\01'"
 
                 forkIO (readOut out)
@@ -70,7 +70,7 @@ startEvaluator dat@Data{txtOut=txtOut,compiler=compiler,cHandles=cHandles} = do
 
 	getCompilerPath c = do
 	    case c of
-		"Hugs" -> getHugsPath
+		Hugs -> getHugsPath
 		--"GHCI" -> getGHCiPath
 		_      -> getOtherPath c
 
@@ -99,5 +99,5 @@ getHugsPath = do
 getGHCiPath :: IO (Maybe FilePath)
 getGHCiPath = findExecutable "ghci"
 
-getOtherPath :: String -> IO (Maybe FilePath)
-getOtherPath = findExecutable . map toLower
+getOtherPath :: Compiler -> IO (Maybe FilePath)
+getOtherPath = findExecutable . map toLower . show
