@@ -5,6 +5,8 @@ import PropLang.Gtk
 import PropLang.Variable
 import PropLang.Event
 
+import Data.Map (Map)
+
 import System.IO (Handle)
 import System.Process
 import Text.EscapeCodes
@@ -29,14 +31,14 @@ data Data = Data {
     running :: Var Bool, -- is the code executing
     filename :: Var (Maybe String), -- the main file loaded
     outputTags :: Var [String],
-    compiler :: Var Compiler,
-    cHandles :: Var (Maybe (ProcessHandle, Handle))
+    selection :: Var Compiler,
+    compilers :: Var (Map Compiler (ProcessHandle, Handle))
     }
 
 instance Eq ProcessHandle where
     x == y = False -- Obviously a hack
 
-data Compiler = Hugs | GHC | GHCi deriving (Show, Read, Eq)
+data Compiler = Hugs | GHC | GHCi deriving (Show, Read, Eq, Ord)
 
 setupFonts :: Data -> IO ()
 setupFonts dat@Data{txtOut=txtOut, txtIn=txtIn} = do
