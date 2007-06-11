@@ -1,0 +1,4 @@
+TODO:
+
+* Make sure GuiHaskell cleans up after itself, e.g. terminating interpreters
+* Format the code and add some basic documentation
