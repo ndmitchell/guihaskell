@@ -4,6 +4,7 @@ module Evaluator where
 
 import Data
 import Data.Char
+import qualified Data.Map as M
 import System.IO
 import System.Process
 import System.Directory
@@ -26,10 +27,20 @@ setCompiler m var =
 	    var -< read x
     where defaultCompiler = Hugs
 
+switchEvaluator :: Data -> IO ()
+switchEvaluator dat = do
+    pair <- getHandles dat
+    case pair of
+	Nothing -> do
+	    startEvaluator dat
+	Just x -> do
+	    return ()
+
 startEvaluator :: Data -> IO ()
-startEvaluator dat@Data{txtOut=txtOut,compiler=compiler,cHandles=cHandles} = do
-	c <- getVar compiler
-	path <- getCompilerPath c
+startEvaluator dat@Data{txtOut=txtOut,selection=selection,compilers=compilers} = do
+	s <- getVar selection
+	cMap <- getVar compilers
+	path <- getCompilerPath s
         case path of
             Nothing -> do
                 appendText dat "Compiler not found, please install"
@@ -43,15 +54,15 @@ startEvaluator dat@Data{txtOut=txtOut,compiler=compiler,cHandles=cHandles} = do
                 hSetBinaryMode out True
                 hSetBinaryMode err True
 
-                appendText dat $ "Loading " ++ show c ++ "...\n"
-                hPutStrLn inp $ case c of
+                appendText dat $ "Loading " ++ show s ++ "...\n"
+                hPutStrLn inp $ case s of
 				  Hugs -> ":set -p\"" ++ prompt ++ "\""
 				  GHCi -> ":set prompt " ++ prompt
                 hPutStrLn inp $ "putChar '\\01'"
 
                 forkIO (readOut out)
                 forkIO (readErr err)
-		cHandles -< Just (pid,inp)
+		compilers -< M.update (\x -> Just (pid,inp)) s cMap
 		return ()
     where
         readOut hndl = do
@@ -75,14 +86,20 @@ startEvaluator dat@Data{txtOut=txtOut,compiler=compiler,cHandles=cHandles} = do
 		_      -> getOtherPath c
 
 stopEvaluator :: Data -> IO ()
-stopEvaluator dat@Data{cHandles=cHandles} = do
-    handles <- getVar cHandles
+stopEvaluator dat = do
+    handles <- getHandles dat
     case handles of
 	Nothing -> return ()
 	Just (pid,inp) -> do
 	    hPutStrLn inp "\n:quit\n"
 	    waitForProcess pid
-	    return ()	
+	    return ()
+
+getHandles :: Data -> IO (Maybe (ProcessHandle, Handle))
+getHandles dat@Data {selection=selection, compilers=compilers} = do
+    s <- getVar selection
+    cMap <- getVar compilers
+    return $ M.lookup s cMap
 
 getHugsPath :: IO (Maybe FilePath)
 getHugsPath = do

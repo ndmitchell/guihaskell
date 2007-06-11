@@ -4,6 +4,7 @@ import PropLang.Variable
 import PropLang.Event
 
 import Control.Monad
+import qualified Data.Map as M
 import Data.Maybe
 import System.IO
 
@@ -28,14 +29,14 @@ main = do
     running <- newVar True
     filename <- newVar Nothing
     tags <- newVar []
-    compiler <- newVar Hugs
-    cHandles <- newVar Nothing
+    selection <- newVar Hugs
+    compilers <- newVar M.empty
 
     let f x = getCtrl window x
         dat = Data window
                   (f "txtOut") (f "txtIn") (f "sb")
                   (f "tbRun") (f "tbOpen") (f "tbStop") (f "tbRecent") (f "tbCompiler")
-                  running filename tags compiler cHandles
+                  running filename tags selection compilers
 
     setupDialog dat
     setupFonts dat
@@ -53,7 +54,7 @@ main = do
   -}
 
 setupDialog :: Data -> IO ()
-setupDialog dat@Data{tbRun=tbRun,tbStop=tbStop,txtIn=txtIn,running=running,compiler=compiler} = do
+setupDialog dat@Data{tbRun=tbRun,tbStop=tbStop,txtIn=txtIn,running=running,selection=selection} = do
     Just xml <- xmlNew "res/compilerdialog.glade"
     dialog   <- xmlGetWidget xml castToDialog "compilerDialog"
     combo    <- xmlGetWidget xml castToComboBox "compilerSelection"
@@ -63,24 +64,22 @@ setupDialog dat@Data{tbRun=tbRun,tbStop=tbStop,txtIn=txtIn,running=running,compi
       where 
 	  handleResponse combo response = 
 	      case response of
-		  ResponseNone   -> setCompiler Nothing compiler
-		  ResponseCancel -> setCompiler Nothing compiler
-		  ResponseOk     -> flip setCompiler compiler =<< comboBoxGetActiveText combo
+		  ResponseNone   -> setCompiler Nothing selection
+		  ResponseCancel -> setCompiler Nothing selection
+		  ResponseOk     -> flip setCompiler selection =<< comboBoxGetActiveText combo
 
 setupRelations :: Data -> IO ()
 setupRelations dat@Data{tbRun=tbRun,tbStop=tbStop,tbCompiler=tbCompiler,txtIn=txtIn,
-    running=running,
-    compiler=compiler,
-    cHandles=cHandles
+    running=running
     } = do
 
     startEvaluator dat
-    handles <- getVar cHandles
+    handles <- getHandles dat
     case handles of
         Nothing -> return ()
         Just (pid,inp) -> do
             tbRun!onClicked += fireCommand dat 
-	    tbCompiler!onClicked += (setupDialog dat >> stopEvaluator dat >> startEvaluator dat)
+	    tbCompiler!onClicked += (setupDialog dat >> switchEvaluator dat)
             -- tbStop!onClicked += stopCommand dat pid
             onEnterKey txtIn $ fireCommand dat 
     
@@ -91,8 +90,8 @@ setupRelations dat@Data{tbRun=tbRun,tbStop=tbStop,tbCompiler=tbCompiler,txtIn=tx
 
 
 fireCommand :: Data -> IO ()
-fireCommand dat@Data{txtOut=txtOut, txtIn=txtIn,cHandles=cHandles} = do
-    handles <- getVar cHandles
+fireCommand dat@Data{txtOut=txtOut, txtIn=txtIn} = do
+    handles <- getHandles dat
     case handles of
 	Nothing -> return ()
 	Just (pid, inp) -> do
