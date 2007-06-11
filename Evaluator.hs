@@ -62,7 +62,7 @@ startEvaluator dat@Data{txtOut=txtOut,selection=selection,compilers=compilers} =
 
                 forkIO (readOut out)
                 forkIO (readErr err)
-		compilers -< M.update (\x -> Just (pid,inp)) s cMap
+		compilers -< M.insert s (pid,inp) cMap
 		return ()
     where
         readOut hndl = do
