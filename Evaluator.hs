@@ -33,7 +33,9 @@ switchEvaluator dat = do
     case pair of
 	Nothing -> do
 	    startEvaluator dat
-	Just x -> do
+	Just (pid,inp) -> do
+	    appendText dat "\nSwitching...\n"
+	    hPutStrLn inp $ ""
 	    return ()
 
 startEvaluator :: Data -> IO ()
