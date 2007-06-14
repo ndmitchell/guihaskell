@@ -27,6 +27,7 @@ data Data = Data {
     tbOpen :: ToolButton,
     tbStop :: ToolButton,
     tbRecent :: ToolButton,
+    tbCompiler :: ToolButton,
 
     running :: Var Bool, -- is the code executing
     filename :: Var (Maybe String), -- the main file loaded
