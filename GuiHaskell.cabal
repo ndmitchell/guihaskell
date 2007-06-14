@@ -1,0 +1,12 @@
+Name:			GuiHaskell
+Synopsis:		A graphical REPL and development environment for Haskell
+Version:		0.0
+License:		BSD3
+Author:			Neil Mitchell
+Homepage:		http://www-users.cs.york.ac.uk/~ndm/guihaskell/
+Category:		System
+Build-Depends:		base, proplang
+
+Executable:		guihaskell
+Main-is:		Main.hs
+Other-modules:		Evaluator Data
