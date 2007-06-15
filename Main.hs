@@ -63,9 +63,11 @@ setupDialog dat = do
       where 
 	  handleResponse combo response =
 	      case response of
-		  ResponseNone   -> setCompiler Nothing selection
-		  ResponseCancel -> setCompiler Nothing selection
-		  ResponseOk     -> flip setCompiler selection =<< comboBoxGetActiveText combo
+		  ResponseNone   -> return defaultName
+		  ResponseCancel -> return defaultName
+		  ResponseOk     -> (return . maybe defaultName read) =<< comboBoxGetActiveText combo
+	    where 
+	      defaultName = Hugs
 
 setupRelations :: Data -> IO ()
 setupRelations dat@Data{tbRun=tbRun,tbStop=tbStop,tbCompiler=tbCompiler,txtIn=txtIn,
@@ -77,7 +79,7 @@ setupRelations dat@Data{tbRun=tbRun,tbStop=tbStop,tbCompiler=tbCompiler,txtIn=tx
         Nothing -> return ()
         Just (pid,inp) -> do
             tbRun!onClicked += fireCommand dat 
-	    tbCompiler!onClicked += (setupDialog dat >> switchEvaluator dat)
+	    tbCompiler!onClicked += (setupDialog dat >>= switchEvaluator dat)
             -- tbStop!onClicked += stopCommand dat pid
             onEnterKey txtIn $ fireCommand dat 
     
