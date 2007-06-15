@@ -16,32 +16,44 @@ import Text.EscapeCodes
 
 prompt = "\x1B[0;32m%s>\x1B[0m \x1B[50m"
 
-
-setCompiler :: Maybe String -> Var Compiler -> IO ()
-setCompiler m var =
-    case m of
-	Nothing -> do
-	    var -< defaultCompiler
-	Just x -> do
-	    var -< read x
-    where defaultCompiler = Hugs
-
-switchEvaluator :: Data -> IO ()
-switchEvaluator dat = do
+--
+-- Switch the currently running evaluator
+--
+switchEvaluator :: Data -> Name -> IO ()
+switchEvaluator dat n = do
+    setCurrent dat n
     pair <- getHandles dat
     case pair of
 	Nothing -> do
-	    startEvaluator dat
+	    startEvaluator dat n
 	Just (pid,inp) -> do
 	    appendText dat "\nSwitching...\n"
 	    hPutStrLn inp $ ""
 	    return ()
+    where
+	setCurrent :: Data -> Name -> IO ()
+	setCurrent dat@Data{eState=eState} n = do
+	    e <- getVar eState
+	    if (name $ current e) == n  --don't try to change if we're not changing
+	      then return ()
+	      else do
+		  eState -< EvalState { 
+		      current = (snd $ breakEval e) !! 0, 
+		      rest = current e : (fst $ breakEval e)
+		  }
+		  return ()
+	    where
+		-- second half of pair is what we want, first is everything else
+		breakEval :: EvalState -> ([Evaluator], [Evaluator])
+		breakEval = break (\x -> (name x) == n) . rest
 
-startEvaluator :: Data -> IO ()
-startEvaluator dat@Data{txtOut=txtOut,selection=selection,compilers=compilers} = do
-	s <- getVar selection
-	cMap <- getVar compilers
-	path <- getCompilerPath s
+--
+-- Start an evaluator
+--
+startEvaluator :: Data -> Name -> IO ()
+startEvaluator dat@Data{txtOut=txtOut, eState=eState} name = do
+	e <- getVar eState
+	path <- getCompilerPath name
         case path of
             Nothing -> do
                 appendText dat "Compiler not found, please install"
@@ -55,15 +67,13 @@ startEvaluator dat@Data{txtOut=txtOut,selection=selection,compilers=compilers} =
                 hSetBinaryMode out True
                 hSetBinaryMode err True
 
-                appendText dat $ "Loading " ++ show s ++ "...\n"
-                hPutStrLn inp $ case s of
-				  Hugs -> ":set -p\"" ++ prompt ++ "\""
-				  GHCi -> ":set prompt " ++ prompt
+                appendText dat $ "\nLoading " ++ show name ++ "...\n"
+                hPutStrLn inp $ (promptCmd $ current e) prompt
                 hPutStrLn inp $ "putChar '\\01'"
 
                 forkIO (readOut out)
                 forkIO (readErr err)
-		compilers -< M.insert s (pid,inp) cMap
+		setHandles dat $ Just (pid,inp)
 		return ()
     where
         readOut hndl = do
@@ -86,21 +96,37 @@ startEvaluator dat@Data{txtOut=txtOut,selection=selection,compilers=compilers} =
 		--"GHCI" -> getGHCiPath
 		_      -> getOtherPath c
 
+--
+-- Stop the currently running evaluator
+--
+-- Should this stop all evaluators?
+--
 stopEvaluator :: Data -> IO ()
 stopEvaluator dat = do
     handles <- getHandles dat
     case handles of
 	Nothing -> return ()
 	Just (pid,inp) -> do
+	    setHandles dat Nothing
 	    hPutStrLn inp "\n:quit\n"
 	    waitForProcess pid
 	    return ()
 
+--
+-- Get the handles for the current evaluator
+--
 getHandles :: Data -> IO (Maybe (ProcessHandle, Handle))
-getHandles dat@Data {selection=selection, compilers=compilers} = do
-    s <- getVar selection
-    cMap <- getVar compilers
-    return $ M.lookup s cMap
+getHandles dat@Data{eState=eState} = do
+    e <- getVar eState
+    return $ handles $ current e
+
+--
+-- Set the handles for the current evaluator
+--
+setHandles :: Data -> Maybe (ProcessHandle, Handle) -> IO ()
+setHandles dat@Data{eState=eState} h = do
+    e <- getVar eState
+    eState -< e { current = (current $ e) { handles = h } }
 
 getHugsPath :: IO (Maybe FilePath)
 getHugsPath = do
@@ -117,5 +143,5 @@ getHugsPath = do
 getGHCiPath :: IO (Maybe FilePath)
 getGHCiPath = findExecutable "ghci"
 
-getOtherPath :: Compiler -> IO (Maybe FilePath)
+getOtherPath :: Name -> IO (Maybe FilePath)
 getOtherPath = findExecutable . map toLower . show

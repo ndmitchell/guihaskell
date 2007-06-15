@@ -29,18 +29,17 @@ main = do
     running <- newVar True
     filename <- newVar Nothing
     tags <- newVar []
-    selection <- newVar Hugs
-    compilers <- newVar M.empty
+    eState <- newVar initialEvals
 
     let f x = getCtrl window x
         dat = Data window
                   (f "txtOut") (f "txtIn") (f "sb")
                   (f "tbRun") (f "tbOpen") (f "tbStop") (f "tbRecent") (f "tbCompiler")
-                  running filename tags selection compilers
+                  running filename tags eState
 
-    setupDialog dat
+    setupDialog dat >>= startEvaluator dat
     setupFonts dat
-    res <- setupRelations dat
+    setupRelations dat
 
     showWindowMain window
    
@@ -53,16 +52,16 @@ main = do
             return ()
   -}
 
-setupDialog :: Data -> IO ()
-setupDialog dat@Data{tbRun=tbRun,tbStop=tbStop,txtIn=txtIn,running=running,selection=selection} = do
+setupDialog :: Data -> IO (Name)
+setupDialog dat = do
     Just xml <- xmlNew "res/compilerdialog.glade"
     dialog   <- xmlGetWidget xml castToDialog "compilerDialog"
     combo    <- xmlGetWidget xml castToComboBox "compilerSelection"
     response <- dialogRun dialog
-    handleResponse combo response
     widgetHide dialog
+    handleResponse combo response
       where 
-	  handleResponse combo response = 
+	  handleResponse combo response =
 	      case response of
 		  ResponseNone   -> setCompiler Nothing selection
 		  ResponseCancel -> setCompiler Nothing selection
@@ -73,7 +72,6 @@ setupRelations dat@Data{tbRun=tbRun,tbStop=tbStop,tbCompiler=tbCompiler,txtIn=tx
     running=running
     } = do
 
-    startEvaluator dat
     handles <- getHandles dat
     case handles of
         Nothing -> return ()
