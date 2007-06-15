@@ -107,23 +107,6 @@ stopEvaluator dat = do
 	    waitForProcess pid
 	    return ()
 
---
--- Get the handles for the current evaluator
---
-getHandles :: Data -> IO (Maybe (ProcessHandle, Handle))
-getHandles dat@Data{eState=eState} = do
-    e <- getVar eState
-    x <- M.lookup (current e) (states e)
-    return $ handles x
-
---
--- Set the handles for the current evaluator
---
-setHandles :: Data -> Maybe (ProcessHandle, Handle) -> IO ()
-setHandles dat@Data{eState=eState} h = do
-    e <- getVar eState
-    eState -< e { states = M.adjust (\x -> x { handles = h }) (current e) (states e) }
-
 getHugsPath :: IO (Maybe FilePath)
 getHugsPath = do
     path <- findExecutable "hugs"
@@ -134,7 +117,6 @@ getHugsPath = do
             res <- mapM doesFileExist guesses
             let ans = map snd $ filter fst $ zip res guesses
             return $ if null ans then Nothing else Just (head ans)
-
 
 getGHCiPath :: IO (Maybe FilePath)
 getGHCiPath = findExecutable "ghci"

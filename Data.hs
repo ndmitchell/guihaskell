@@ -75,10 +75,29 @@ initialStates =
 	]
     }
 
+--
+-- Fetch the current evaluator state
+--
 getCurrentState :: Data -> IO Evaluator
 getCurrentState dat@Data{eState=eState} = do
     e <- getVar eState
     M.lookup (current e) (states e)
+
+--
+-- Get the handles for the current evaluator
+--
+getHandles :: Data -> IO (Maybe (ProcessHandle, Handle))
+getHandles dat@Data{eState=eState} = do
+    s <- getCurrentState dat
+    return $ handles s
+
+--
+-- Set the handles for the current evaluator
+--
+setHandles :: Data -> Maybe (ProcessHandle, Handle) -> IO ()
+setHandles dat@Data{eState=eState} h = do
+    e <- getVar eState
+    eState -< e { states = M.adjust (\x -> x { handles = h }) (current e) (states e) }
 
 setupFonts :: Data -> IO ()
 setupFonts dat@Data{txtOut=txtOut, txtIn=txtIn} = do
