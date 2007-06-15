@@ -1,3 +1,20 @@
+-----------------------------------------------------------------------------
+-- 
+-- Module      :  Data.hs
+-- Copyright   :  (c) Neil Mitchell 2007
+-- License     :  
+--
+-- Maintainer  :  
+-- Stability   :  unstable
+-- Portability :  not portable, uses Gtk2Hs
+--
+-- Defines the core data structures for GuiHaskell.
+--
+-- Data passes around some global state. Data includes
+-- EvalState, which holds the states of the individual
+-- compilers that GuiHaskell can run.
+--
+-----------------------------------------------------------------------------
 
 module Data (
 	Data (..), EvalState(..), Evaluator(..), Name(..),

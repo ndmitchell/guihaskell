@@ -1,8 +1,20 @@
+-----------------------------------------------------------------------------
+-- 
+-- Module      :  Evaluator.hs
+-- Copyright   :  (c) Neil Mitchell 2007
+-- License     :  
+--
+-- Maintainer  :  
+-- Stability   :  unstable
+-- Portability :  not portable, uses Gtk2Hs
+--
+-- Evaluator functions.
+--
+-----------------------------------------------------------------------------
 
 module Evaluator (
 	switchEvaluator, startEvaluator, stopEvaluator
 	) where
-
 
 import Data
 

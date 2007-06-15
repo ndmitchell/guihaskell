@@ -1,3 +1,14 @@
+-----------------------------------------------------------------------------
+-- 
+-- Module      :  Main.hs
+-- Copyright   :  (c) Neil Mitchell 2007
+-- License     :  
+--
+-- Maintainer  :  
+-- Stability   :  unstable
+-- Portability :  not portable, uses Gtk2Hs
+--
+-----------------------------------------------------------------------------
 
 module Main where
 
