@@ -1,5 +1,7 @@
 
-module Evaluator where
+module Evaluator (
+	switchEvaluator, startEvaluator, stopEvaluator
+	) where
 
 
 import Data

@@ -1,4 +1,6 @@
 
+module Main where
+
 import PropLang.Gtk
 import PropLang.Variable
 import PropLang.Event

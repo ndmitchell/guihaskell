@@ -1,5 +1,9 @@
 
-module Data where
+module Data (
+	Data (..), EvalState(..), Evaluator(..), Name(..),
+	initialStates, getCurrentState, getHandles, setHandles,
+	setupFonts, appendText, appendRed, applyEscape
+	) where
 
 import PropLang.Gtk
 import PropLang.Variable
@@ -9,7 +13,7 @@ import Data.Map (Map)
 import qualified Data.Map as M
 
 import System.IO (Handle)
-import System.Process
+import System.Process (ProcessHandle)
 import Text.EscapeCodes
 
 import Control.Monad
