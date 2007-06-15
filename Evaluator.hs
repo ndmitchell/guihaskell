@@ -6,9 +6,6 @@ import Data
 
 import Data.Char
 
-import Data.Map (Map)
-import qualified Data.Map as M
-
 import System.IO
 import System.Process
 import System.Directory
