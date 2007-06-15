@@ -5,8 +5,6 @@ import PropLang.Gtk
 import PropLang.Variable
 import PropLang.Event
 
-import Data.Map (Map)
-
 import System.IO (Handle)
 import System.Process
 import Text.EscapeCodes

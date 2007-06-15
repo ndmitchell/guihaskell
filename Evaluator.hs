@@ -4,7 +4,6 @@ module Evaluator where
 
 import Data
 import Data.Char
-import qualified Data.Map as M
 import System.IO
 import System.Process
 import System.Directory
