@@ -68,6 +68,9 @@ data Evaluator = Evaluator {
 
 data Name = Hugs | GHC | GHCi deriving (Show, Read, Eq, Ord)
 
+--
+-- Initialize the evalutor details and states
+--
 initialStates :: EvalState
 initialStates = 
     EvalState {
