@@ -29,7 +29,7 @@ main = do
     running <- newVar True
     filename <- newVar Nothing
     tags <- newVar []
-    eState <- newVar initialEvals
+    eState <- newVar initialStates
 
     let f x = getCtrl window x
         dat = Data window

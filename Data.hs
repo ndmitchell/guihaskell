@@ -65,8 +65,8 @@ instance Eq Evaluator where
 
 data Name = Hugs | GHC | GHCi deriving (Show, Read, Eq, Ord)
 
-initialEvals :: EvalState
-initialEvals = 
+initialStates :: EvalState
+initialStates = 
     EvalState {
 	current = Evaluator { name = Hugs, handles = Nothing, promptCmd = \x -> ":set -p\"" ++ x ++ "\"" },
 	rest = [
