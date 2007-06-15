@@ -32,14 +32,50 @@ data Data = Data {
     running :: Var Bool, -- is the code executing
     filename :: Var (Maybe String), -- the main file loaded
     outputTags :: Var [String],
-    selection :: Var Compiler,
-    compilers :: Var (Map Compiler (ProcessHandle, Handle))
+
+    eState :: Var EvalState
     }
 
-instance Eq ProcessHandle where
-    x == y = False -- Obviously a hack
+--
+-- Stores the current evaluator and
+-- the states of background evaluators
+--
+-- When a new evaluator is chosen, the
+-- current evaluator is swapped into the list
+-- and the new evalutor is put into current
+--
+data EvalState = EvalState {
+    current :: Evaluator,
+    rest :: [Evaluator]
+    }
 
-data Compiler = Hugs | GHC | GHCi deriving (Show, Read, Eq, Ord)
+instance Eq EvalState where
+    x == y = current x == current y && rest x == rest y
+
+--
+-- A data structure for storing the compiler-specific
+-- details
+--
+data Evaluator = Evaluator {
+    name :: Name,
+    handles :: Maybe (ProcessHandle, Handle), 
+    promptCmd :: String -> String
+    }
+
+instance Eq Evaluator where
+    x == y = name x == name y -- hack
+
+data Name = Hugs | GHC | GHCi deriving (Show, Read, Eq, Ord)
+
+initialEvals :: EvalState
+initialEvals = 
+    EvalState {
+	current = Evaluator { name = Hugs, handles = Nothing, promptCmd = \x -> ":set -p\"" ++ x ++ "\"" },
+	rest = [
+	    Evaluator { name = GHC, handles = Nothing, promptCmd = \x -> "foo" },
+	    Evaluator { name = GHCi, handles = Nothing, promptCmd = \x -> ":set prompt " ++ x }
+	]
+    }
 
 setupFonts :: Data -> IO ()
 setupFonts dat@Data{txtOut=txtOut, txtIn=txtIn} = do
