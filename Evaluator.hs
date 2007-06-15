@@ -28,6 +28,7 @@ switchEvaluator dat n = do
 	    startEvaluator dat n
 	Just (pid,inp) -> do
 	    appendText dat "\nSwitching...\n"
+	    putStrLn "Switching evaluators"
 	    hPutStrLn inp $ ""
 	    return ()
     where
