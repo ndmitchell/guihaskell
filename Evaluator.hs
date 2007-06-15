@@ -3,7 +3,12 @@ module Evaluator where
 
 
 import Data
+
 import Data.Char
+
+import Data.Map (Map)
+import qualified Data.Map as M
+
 import System.IO
 import System.Process
 import System.Directory
@@ -35,25 +40,14 @@ switchEvaluator dat n = do
 	setCurrent :: Data -> Name -> IO ()
 	setCurrent dat@Data{eState=eState} n = do
 	    e <- getVar eState
-	    if (name $ current e) == n  --don't try to change if we're not changing
-	      then return ()
-	      else do
-		  eState -< EvalState { 
-		      current = (snd $ breakEval e) !! 0, 
-		      rest = current e : (fst $ breakEval e)
-		  }
-		  return ()
-	    where
-		-- second half of pair is what we want, first is everything else
-		breakEval :: EvalState -> ([Evaluator], [Evaluator])
-		breakEval = break (\x -> (name x) == n) . rest
+	    eState -< e { current = n }
 
 --
 -- Start an evaluator
 --
 startEvaluator :: Data -> Name -> IO ()
-startEvaluator dat@Data{txtOut=txtOut, eState=eState} name = do
-	e <- getVar eState
+startEvaluator dat@Data{txtOut=txtOut} name = do
+	s <- getCurrentState dat
 	path <- getCompilerPath name
         case path of
             Nothing -> do
@@ -69,7 +63,7 @@ startEvaluator dat@Data{txtOut=txtOut, eState=eState} name = do
                 hSetBinaryMode err True
 
                 appendText dat $ "\nLoading " ++ show name ++ "...\n"
-                hPutStrLn inp $ (promptCmd $ current e) prompt
+                hPutStrLn inp $ (promptCmd s) prompt
                 hPutStrLn inp $ "putChar '\\01'"
 
                 forkIO (readOut out)
@@ -119,7 +113,8 @@ stopEvaluator dat = do
 getHandles :: Data -> IO (Maybe (ProcessHandle, Handle))
 getHandles dat@Data{eState=eState} = do
     e <- getVar eState
-    return $ handles $ current e
+    x <- M.lookup (current e) (states e)
+    return $ handles x
 
 --
 -- Set the handles for the current evaluator
@@ -127,7 +122,7 @@ getHandles dat@Data{eState=eState} = do
 setHandles :: Data -> Maybe (ProcessHandle, Handle) -> IO ()
 setHandles dat@Data{eState=eState} h = do
     e <- getVar eState
-    eState -< e { current = (current $ e) { handles = h } }
+    eState -< e { states = M.adjust (\x -> x { handles = h }) (current e) (states e) }
 
 getHugsPath :: IO (Maybe FilePath)
 getHugsPath = do

@@ -5,6 +5,9 @@ import PropLang.Gtk
 import PropLang.Variable
 import PropLang.Event
 
+import Data.Map (Map)
+import qualified Data.Map as M
+
 import System.IO (Handle)
 import System.Process
 import Text.EscapeCodes
@@ -43,37 +46,39 @@ data Data = Data {
 -- and the new evalutor is put into current
 --
 data EvalState = EvalState {
-    current :: Evaluator,
-    rest :: [Evaluator]
+    current :: Name,
+    states :: Map Name Evaluator
     }
 
 instance Eq EvalState where
-    x == y = current x == current y && rest x == rest y
+    x == y = current x == current y -- hackish
 
 --
 -- A data structure for storing the compiler-specific
 -- details
 --
 data Evaluator = Evaluator {
-    name :: Name,
-    handles :: Maybe (ProcessHandle, Handle), 
+    handles :: Maybe (ProcessHandle, Handle),
     promptCmd :: String -> String
     }
-
-instance Eq Evaluator where
-    x == y = name x == name y -- hack
 
 data Name = Hugs | GHC | GHCi deriving (Show, Read, Eq, Ord)
 
 initialStates :: EvalState
 initialStates = 
     EvalState {
-	current = Evaluator { name = Hugs, handles = Nothing, promptCmd = \x -> ":set -p\"" ++ x ++ "\"" },
-	rest = [
-	    Evaluator { name = GHC, handles = Nothing, promptCmd = \x -> "foo" },
-	    Evaluator { name = GHCi, handles = Nothing, promptCmd = \x -> ":set prompt " ++ x }
+        current = Hugs,
+	states = M.fromList [
+	    (Hugs, Evaluator { handles = Nothing, promptCmd = \x -> ":set -p\"" ++ x ++ "\"" }),
+	    (GHC, Evaluator { handles = Nothing, promptCmd = \x -> "foo" }),
+	    (GHCi, Evaluator { handles = Nothing, promptCmd = \x -> ":set prompt " ++ x })
 	]
     }
+
+getCurrentState :: Data -> IO Evaluator
+getCurrentState dat@Data{eState=eState} = do
+    e <- getVar eState
+    M.lookup (current e) (states e)
 
 setupFonts :: Data -> IO ()
 setupFonts dat@Data{txtOut=txtOut, txtIn=txtIn} = do
