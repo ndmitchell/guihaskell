@@ -42,7 +42,7 @@ switchEvaluator dat n = do
     pair <- getHandles dat
     case pair of
 	Nothing -> do
-	    startEvaluator dat n
+	    startEvaluator dat n Nothing
 	Just (pid,inp) -> do
 	    appendText dat "\nSwitching...\n"
 	    putStrLn "Switching evaluators"
@@ -56,15 +56,15 @@ switchEvaluator dat n = do
 --
 -- Start an evaluator
 --
-startEvaluator :: Data -> Name -> IO ()
-startEvaluator dat@Data{txtOut=txtOut} name = do
+startEvaluator :: Data -> Name -> Maybe [String] -> IO ()
+startEvaluator dat@Data{txtOut=txtOut} name args = do
 	s <- getCurrentState dat
 	path <- getCompilerPath name
         case path of
             Nothing -> do
                 appendText dat "Compiler not found, please install"
             Just x -> do
-                (inp,out,err,pid) <- runInteractiveCommand ("\"" ++ x ++ "\"")
+                (inp,out,err,pid) <- runInteractiveProcess x (maybe [] id args) Nothing Nothing
                 putStrLn "Starting interactive command"
                 hSetBuffering out NoBuffering
                 hSetBuffering err NoBuffering
@@ -117,19 +117,17 @@ stopEvaluator dat = do
 	    return ()
 
 --
--- Get the contents of a file and send it
--- to the compiler
+-- Run a compiler with a file
 --
 evalFile :: Data -> Maybe FilePath -> IO ()
-evalFile dat path = do
+evalFile dat@Data{eState=eState} path = do
+    e <- getVar eState
     case path of
-	Nothing -> return ()
+	Nothing -> 
+	    return ()
 	Just p  -> do
-	    handles <- getHandles dat
-	    case handles of
-		Nothing -> return ()
-		Just (pid, inp) ->
-		    openFile p ReadMode >>= hGetContents >>= hPutStr inp
+	    stopEvaluator dat
+	    startEvaluator dat (current e) $ Just [p]
 
 getHugsPath :: IO (Maybe FilePath)
 getHugsPath = do
