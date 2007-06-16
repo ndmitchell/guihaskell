@@ -23,10 +23,12 @@ import System.IO
 
 import Control.Concurrent
 
-import Graphics.UI.Gtk.Windows.Dialog
 import Graphics.UI.Gtk.Abstract.Widget
-import Graphics.UI.Gtk.MenuComboToolbar.ComboBox
 import Graphics.UI.Gtk.Glade
+import Graphics.UI.Gtk.MenuComboToolbar.ComboBox
+import Graphics.UI.Gtk.Selectors.FileChooser
+import Graphics.UI.Gtk.Selectors.FileChooserDialog
+import Graphics.UI.Gtk.Windows.Dialog
 
 import System.Posix.Signals
 import System.Process
@@ -50,7 +52,7 @@ main = do
                   (f "tbRun") (f "tbOpen") (f "tbStop") (f "tbRecent") (f "tbCompiler")
                   running filename tags eState
 
-    setupDialog dat >>= startEvaluator dat
+    runCompilerDialog >>= switchEvaluator dat
     setupFonts dat
     setupRelations dat
 
@@ -65,8 +67,8 @@ main = do
             return ()
   -}
 
-setupDialog :: Data -> IO (Name)
-setupDialog dat = do
+runCompilerDialog :: IO (Name)
+runCompilerDialog = do
     Just xml <- xmlNew "res/compilerdialog.glade"
     dialog   <- xmlGetWidget xml castToDialog "compilerDialog"
     combo    <- xmlGetWidget xml castToComboBox "compilerSelection"
@@ -82,8 +84,20 @@ setupDialog dat = do
 	    where 
 	      defaultName = Hugs
 
+runFileDialog :: IO (Maybe FilePath)
+runFileDialog = do
+    dialog <- fileChooserDialogNew Nothing Nothing FileChooserActionOpen [("Okay", ResponseOk), ("Cancel", ResponseCancel)]
+    response <- dialogRun dialog
+    widgetHide dialog
+    handleResponse dialog response
+    where
+	handleResponse dialog response =
+	    case response of
+		ResponseCancel -> return Nothing
+		ResponseOk     -> fileChooserGetFilename dialog
+
 setupRelations :: Data -> IO ()
-setupRelations dat@Data{tbRun=tbRun,tbStop=tbStop,tbCompiler=tbCompiler,txtIn=txtIn,
+setupRelations dat@Data{tbRun=tbRun,tbStop=tbStop,tbCompiler=tbCompiler,tbOpen=tbOpen,txtIn=txtIn,
     running=running
     } = do
 
@@ -91,9 +105,10 @@ setupRelations dat@Data{tbRun=tbRun,tbStop=tbStop,tbCompiler=tbCompiler,txtIn=tx
     case handles of
         Nothing -> return ()
         Just (pid,inp) -> do
-            tbRun!onClicked += fireCommand dat 
-	    tbCompiler!onClicked += (setupDialog dat >>= switchEvaluator dat)
-            -- tbStop!onClicked += stopCommand dat pid
+            tbRun!onClicked 	 += fireCommand dat 
+	    tbCompiler!onClicked += (runCompilerDialog >>= switchEvaluator dat)
+	    tbOpen!onClicked 	 += (runFileDialog >>= evalFile dat)
+            -- tbStop!onClicked  += stopCommand dat pid
             onEnterKey txtIn $ fireCommand dat 
     
     tbRun!enabled =< with1 running not

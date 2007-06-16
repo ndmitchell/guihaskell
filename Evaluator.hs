@@ -13,7 +13,8 @@
 -----------------------------------------------------------------------------
 
 module Evaluator (
-	switchEvaluator, startEvaluator, stopEvaluator
+	switchEvaluator, startEvaluator, stopEvaluator,
+	evalFile
 	) where
 
 import Data
@@ -46,7 +47,6 @@ switchEvaluator dat n = do
 	    appendText dat "\nSwitching...\n"
 	    putStrLn "Switching evaluators"
 	    hPutStrLn inp $ ""
-	    return ()
     where
 	setCurrent :: Data -> Name -> IO ()
 	setCurrent dat@Data{eState=eState} n = do
@@ -63,7 +63,6 @@ startEvaluator dat@Data{txtOut=txtOut} name = do
         case path of
             Nothing -> do
                 appendText dat "Compiler not found, please install"
-                return ()
             Just x -> do
                 (inp,out,err,pid) <- runInteractiveCommand ("\"" ++ x ++ "\"")
                 putStrLn "Starting interactive command"
@@ -80,7 +79,6 @@ startEvaluator dat@Data{txtOut=txtOut} name = do
                 forkIO (readOut out)
                 forkIO (readErr err)
 		setHandles dat $ Just (pid,inp)
-		return ()
     where
         readOut hndl = do
             c <- hGetContents hndl
@@ -117,6 +115,21 @@ stopEvaluator dat = do
 	    hPutStrLn inp "\n:quit\n"
 	    waitForProcess pid
 	    return ()
+
+--
+-- Get the contents of a file and send it
+-- to the compiler
+--
+evalFile :: Data -> Maybe FilePath -> IO ()
+evalFile dat path = do
+    case path of
+	Nothing -> return ()
+	Just p  -> do
+	    handles <- getHandles dat
+	    case handles of
+		Nothing -> return ()
+		Just (pid, inp) ->
+		    openFile p ReadMode >>= hGetContents >>= hPutStr inp
 
 getHugsPath :: IO (Maybe FilePath)
 getHugsPath = do
