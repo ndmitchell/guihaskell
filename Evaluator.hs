@@ -17,20 +17,18 @@ module Evaluator (
 	evalFile
 	) where
 
-import Data
-
+import Control.Concurrent
 import Data.Char
-
+import System.Directory
 import System.IO
 import System.Process
-import System.Directory
-import Control.Concurrent
-import PropLang.Gtk
-import PropLang.Variable
 
+import Data
+import PropLang.Variable
 import Text.EscapeCodes
 
 
+prompt :: String
 prompt = "\x1B[0;32m%s>\x1B[0m \x1B[50m"
 
 --
@@ -38,26 +36,26 @@ prompt = "\x1B[0;32m%s>\x1B[0m \x1B[50m"
 --
 switchEvaluator :: Data -> Name -> IO ()
 switchEvaluator dat n = do
-    setCurrent dat n
+    setCurrent
     pair <- getHandles dat
     case pair of
 	Nothing -> do
 	    startEvaluator dat n Nothing
-	Just (pid,inp) -> do
+	Just (_,inp) -> do
 	    appendText dat "\nSwitching...\n"
 	    putStrLn "Switching evaluators"
 	    hPutStrLn inp $ ""
     where
-	setCurrent :: Data -> Name -> IO ()
-	setCurrent dat@Data{eState=eState} n = do
-	    e <- getVar eState
-	    eState -< e { current = n }
+	setCurrent :: IO ()
+	setCurrent = do
+	    e <- getVar $ eState dat
+	    eState dat -< e { current = n }
 
 --
 -- Start an evaluator
 --
 startEvaluator :: Data -> Name -> Maybe [String] -> IO ()
-startEvaluator dat@Data{txtOut=txtOut} name args = do
+startEvaluator dat name args = do
 	s <- getCurrentState dat
 	path <- getCompilerPath name
         case path of
@@ -120,8 +118,8 @@ stopEvaluator dat = do
 -- Run a compiler with a file
 --
 evalFile :: Data -> Maybe FilePath -> IO ()
-evalFile dat@Data{eState=eState} path = do
-    e <- getVar eState
+evalFile dat path = do
+    e <- getVar $ eState dat
     case path of
 	Nothing -> 
 	    return ()

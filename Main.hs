@@ -17,7 +17,6 @@ import PropLang.Variable
 import PropLang.Event
 
 import Control.Monad
-import qualified Data.Map as M
 import Data.Maybe
 import System.IO
 
@@ -38,6 +37,7 @@ import Data
 import Evaluator
 
 
+main :: IO ()
 main = do
     initPropLang
     window <- getWindow "res/guihaskell.glade" "wndMain"
@@ -104,7 +104,7 @@ setupRelations dat@Data{tbRun=tbRun,tbStop=tbStop,tbCompiler=tbCompiler,tbOpen=t
     handles <- getHandles dat
     case handles of
         Nothing -> return ()
-        Just (pid,inp) -> do
+        Just _ -> do
             tbRun!onClicked 	 += fireCommand dat 
 	    tbCompiler!onClicked += (runCompilerDialog >>= switchEvaluator dat)
 	    tbOpen!onClicked 	 += (runFileDialog >>= evalFile dat)
@@ -113,8 +113,6 @@ setupRelations dat@Data{tbRun=tbRun,tbStop=tbStop,tbCompiler=tbCompiler,tbOpen=t
     
     tbRun!enabled =< with1 running not
     tbStop!enabled =<= running
-    
-    return ()
 
 
 fireCommand :: Data -> IO ()
@@ -130,6 +128,11 @@ fireCommand dat@Data{txtOut=txtOut, txtIn=txtIn} = do
 	    return ()
 
 {-
-stopCommand :: Data -> ProcessHandle -> IO ()
-stopCommand dat pid = signalProcess sigINT pid
+stopCommand :: Data ->  IO ()
+stopCommand dat = do 
+    handles <- getHandles dat
+    case handles of
+	Nothing -> return ()
+	Just (pid, inp) -> do
+	    signalProcess sigINT pid -- need to convert ProcessHandle to ProcessId
 -}

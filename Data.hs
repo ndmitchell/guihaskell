@@ -103,15 +103,15 @@ initialStates =
 -- Fetch the current evaluator state
 --
 getCurrentState :: Data -> IO Evaluator
-getCurrentState dat@Data{eState=eState} = do
-    e <- getVar eState
+getCurrentState dat = do
+    e <- getVar $ eState dat
     M.lookup (current e) (states e)
 
 --
 -- Get the handles for the current evaluator
 --
 getHandles :: Data -> IO (Maybe (ProcessHandle, Handle))
-getHandles dat@Data{eState=eState} = do
+getHandles dat = do
     s <- getCurrentState dat
     return $ handles s
 
@@ -119,9 +119,9 @@ getHandles dat@Data{eState=eState} = do
 -- Set the handles for the current evaluator
 --
 setHandles :: Data -> Maybe (ProcessHandle, Handle) -> IO ()
-setHandles dat@Data{eState=eState} h = do
-    e <- getVar eState
-    eState -< e { states = M.adjust (\x -> x { handles = h }) (current e) (states e) }
+setHandles dat h = do
+    e <- getVar $ eState dat
+    eState dat -< e { states = M.adjust (\x -> x { handles = h }) (current e) (states e) }
 
 setupFonts :: Data -> IO ()
 setupFonts dat@Data{txtOut=txtOut, txtIn=txtIn} = do
@@ -181,5 +181,5 @@ applyEscape dat (FormatForeground Green) = outputTags dat -< ["fgGreen"]
 applyEscape dat _ = return ()
 
 
-
+when_ :: Monad m => Bool -> m () -> m ()
 when_ b x = when b (x >> return ())
