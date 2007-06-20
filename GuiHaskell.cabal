@@ -10,3 +10,4 @@ Build-Depends:		base, proplang
 Executable:		guihaskell
 Main-is:		Main.hs
 Other-modules:		Evaluator Data
+Ghc-options:        	-O2 -Wall
