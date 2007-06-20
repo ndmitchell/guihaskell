@@ -1,2 +1,2 @@
 all:
-	ghc --make -i../proplang -o guihaskell Main.hs
+	ghc --make -Wall -i../proplang -o guihaskell Main.hs
