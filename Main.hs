@@ -78,9 +78,9 @@ runCompilerDialog = do
       where 
 	  handleResponse combo response =
 	      case response of
-		  ResponseNone   -> return defaultName
-		  ResponseCancel -> return defaultName
-		  ResponseOk     -> (return . maybe defaultName read) =<< comboBoxGetActiveText combo
+		  ResponseOk -> (return . maybe defaultName read) =<< 
+				  comboBoxGetActiveText combo
+		  _          -> return defaultName
 	    where 
 	      defaultName = Hugs
 
@@ -93,8 +93,8 @@ runFileDialog = do
     where
 	handleResponse dialog response =
 	    case response of
-		ResponseCancel -> return Nothing
-		ResponseOk     -> fileChooserGetFilename dialog
+		ResponseOk -> fileChooserGetFilename dialog
+		_	   -> return Nothing
 
 setupRelations :: Data -> IO ()
 setupRelations dat@Data{tbRun=tbRun,tbStop=tbStop,tbCompiler=tbCompiler,tbOpen=tbOpen,txtIn=txtIn,
