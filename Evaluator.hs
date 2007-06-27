@@ -117,8 +117,8 @@ stopEvaluator dat = do
 --
 -- Run a compiler with a file
 --
-evalFile :: Data -> Maybe FilePath -> IO ()
-evalFile dat path = do
+startWithFile :: Data -> Maybe FilePath -> IO ()
+startWithFile dat path = do
     e <- getVar $ eState dat
     case path of
 	Nothing -> 

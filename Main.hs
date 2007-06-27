@@ -107,7 +107,7 @@ setupRelations dat@Data{tbRun=tbRun,tbStop=tbStop,tbCompiler=tbCompiler,tbOpen=t
         Just _ -> do
             tbRun!onClicked 	 += fireCommand dat 
 	    tbCompiler!onClicked += (runCompilerDialog >>= switchEvaluator dat)
-	    tbOpen!onClicked 	 += (runFileDialog >>= evalFile dat)
+	    tbOpen!onClicked 	 += (runFileDialog >>= startWithFile dat)
             -- tbStop!onClicked  += stopCommand dat pid
             onEnterKey txtIn $ fireCommand dat 
     
