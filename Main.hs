@@ -121,7 +121,7 @@ fireCommand dat@Data{txtOut=txtOut, txtIn=txtIn} = do
     handles <- getHandles dat
     case handles of
 	Nothing -> return ()
-	Just (pid, inp) -> do
+	Just (inp,_,_) -> do
 	    s <- getVar (txtIn!text)
 	    running dat -< True
 	    left <- checkCommands dat s
