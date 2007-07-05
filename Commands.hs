@@ -17,6 +17,7 @@ module Commands (
 	) where
 
 import Data
+import Evaluator
 
 import System.IO
 -- import System.Process
@@ -26,7 +27,7 @@ import Text.ParserCombinators.Parsec
 -- Define GuiHaskell commands
 --
 commands :: [String]
-commands = ["hoogle", "prof"]
+commands = ["hoogle", "prof", "run"]
 
 --
 -- Parses input for a GuiHaskell command
@@ -36,7 +37,7 @@ checkCommands :: Data -> String -> IO (Maybe String)
 checkCommands dat inp = do 
     case parse command "" inp of
 	Left err -> return $ Just inp
-	Right xs -> runCommand dat xs >> return Nothing
+	Right xs -> runCommand dat xs [] >> return Nothing
 
 --
 -- Match any GuiHaskell commands?
@@ -47,17 +48,29 @@ command = do
     foldr (<|>) pzero $ map string commands
 
 --
+-- Match command arguments
+--
+arguments :: Parser [String]
+arguments = many anyChar `sepBy` space
+
+--
 -- Run a GuiHaskell command
 --
-runCommand :: Data -> String -> IO ()
+runCommand :: Data -> String -> [String] -> IO ()
 runCommand dat "hoogle" = runHoogle dat
 runCommand dat "prof"   = runProf dat
-runCommand _ _		= return ()
+runCommand dat "run"    = runRun dat
+runCommand _ _		= \x -> return ()
 
-runHoogle :: Data -> IO ()
-runHoogle dat = do
+runHoogle :: Data -> [String] -> IO ()
+runHoogle dat args = do
 	putStrLn "Hoogle"
 
-runProf :: Data -> IO ()
-runProf dat = do
+runProf :: Data -> [String] -> IO ()
+runProf dat args = do
 	putStrLn "Prof"
+
+runRun :: Data -> [String] -> IO ()
+runRun dat args = startWithFile dat $ if null args 
+					then Nothing 
+					else Just $ head args
