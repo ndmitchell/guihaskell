@@ -147,7 +147,7 @@ startWithFile dat path = do
     e <- getVar $ eState dat
     case path of
 	Nothing -> 
-	    return ()
+	    appendText dat "Error: No file selected.\n"
 	Just p  -> do
 	    stopEvaluator dat
 	    startEvaluator dat (current e) $ Just [p]
