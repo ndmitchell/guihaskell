@@ -79,9 +79,11 @@ instance Eq EvalState where
 -- details
 --
 data Evaluator = Evaluator {
-    handles :: Maybe (ProcessHandle, Handle),
+    handles :: Maybe EHandle,
     promptCmd :: String -> String
     }
+
+type EHandle = (Handle, Maybe ProcessHandle, Maybe FilePath)
 
 data Name = Hugs | GHC | GHCi deriving (Show, Read, Eq, Ord)
 
@@ -94,7 +96,7 @@ initialStates =
         current = Hugs,
 	states = M.fromList [
 	    (Hugs, Evaluator { handles = Nothing, promptCmd = \x -> ":set -p\"" ++ x ++ "\"" }),
-	    (GHC, Evaluator { handles = Nothing, promptCmd = \x -> "foo" }),
+	    (GHC, Evaluator { handles = Nothing, promptCmd = \x -> "" }),
 	    (GHCi, Evaluator { handles = Nothing, promptCmd = \x -> ":set prompt " ++ x })
 	]
     }
@@ -110,7 +112,7 @@ getCurrentState dat = do
 --
 -- Get the handles for the current evaluator
 --
-getHandles :: Data -> IO (Maybe (ProcessHandle, Handle))
+getHandles :: Data -> IO (Maybe EHandle)
 getHandles dat = do
     s <- getCurrentState dat
     return $ handles s
@@ -118,7 +120,7 @@ getHandles dat = do
 --
 -- Set the handles for the current evaluator
 --
-setHandles :: Data -> Maybe (ProcessHandle, Handle) -> IO ()
+setHandles :: Data -> Maybe EHandle -> IO ()
 setHandles dat h = do
     e <- getVar $ eState dat
     eState dat -< e { states = M.adjust (\x -> x { handles = h }) (current e) (states e) }
