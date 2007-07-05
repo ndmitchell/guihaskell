@@ -14,7 +14,7 @@
 
 module Evaluator (
 	switchEvaluator, startEvaluator, stopEvaluator,
-	evalFile
+	startWithFile
 	) where
 
 import Control.Concurrent
