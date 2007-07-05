@@ -36,7 +36,7 @@ import Text.EscapeCodes
 import Control.Monad
 import Numeric
 
-import Graphics.UI.Gtk hiding (Action, Window, TextView, ToolButton, Event, onClicked)
+import Graphics.UI.Gtk hiding (Action, Window, MenuItem, TextView, ToolButton, Event, onClicked)
 
 
 data Data = Data {
