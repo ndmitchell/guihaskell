@@ -83,7 +83,7 @@ data Evaluator = Evaluator {
     promptCmd :: String -> String
     }
 
-type EHandle = (Handle, Maybe ProcessHandle, Maybe FilePath)
+type EHandle = (Handle, Either ProcessHandle FilePath)
 
 data Name = Hugs | GHC | GHCi deriving (Show, Read, Eq, Ord)
 

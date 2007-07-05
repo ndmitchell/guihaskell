@@ -41,12 +41,12 @@ switchEvaluator dat n = do
     case handles of
 	Nothing -> do
 	    startEvaluator dat n Nothing
-	Just (inp,_,file) -> do
+	Just (inp,hndl) -> do
 	    appendText dat "\nSwitching...\n"
 	    putStrLn "Switching evaluators"
-	    case file of
-	      Just x   -> do removeFile x; putStrLn "Removed temp buffer"
-	      Nothing  -> hPutStrLn inp $ ""
+	    case hndl of
+	      Left _     -> hPutStrLn inp $ ""
+	      Right file -> do removeFile file; putStrLn "Removed temp buffer"
     where
 	setCurrent :: IO ()
 	setCurrent = do
@@ -75,7 +75,7 @@ startEvaluator dat name args = do
 			    GHC -> do
 				(file, hndl) <- openTempFile "/tmp" "guihaskell.hs"
 				hSetBuffering hndl NoBuffering
-				setHandles dat $ Just (hndl,Nothing,Just file)
+				setHandles dat $ Just (hndl,Right file)
 			    _   -> 
 				error "This shouldn't happen"
 	      
@@ -98,7 +98,7 @@ startEvaluator dat name args = do
 
 	    forkIO (readOut out)
 	    forkIO (readErr err)
-	    setHandles dat $ Just (inp,Just pid,Nothing)
+	    setHandles dat $ Just (inp,Left pid)
 
         readOut hndl = do
             c <- hGetContents hndl
@@ -130,12 +130,12 @@ stopEvaluator dat = do
     handles <- getHandles dat
     case handles of
 	Nothing -> return ()
-	Just (inp,Just pid,_) -> do
+	Just (inp,Left pid) -> do
 	    setHandles dat Nothing
 	    hPutStrLn inp "\n:quit\n"
 	    waitForProcess pid
 	    return ()
-	Just (inp,_,Just file) -> do
+	Just (inp,Right file) -> do
 	    setHandles dat Nothing
 	    removeFile file
 
@@ -150,6 +150,7 @@ startWithFile dat path = do
 	    appendText dat "Error: No file selected.\n"
 	Just p  -> do
 	    stopEvaluator dat
+	    appendText dat "Evaluating file...\n"
 	    startEvaluator dat (current e) $ Just [p]
 
 getHugsPath :: IO (Maybe FilePath)

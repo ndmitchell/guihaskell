@@ -120,8 +120,8 @@ fireCommand :: Data -> IO ()
 fireCommand dat@Data{txtOut=txtOut, txtIn=txtIn} = do
     handles <- getHandles dat
     case handles of
-	Nothing -> return ()
-	Just (inp,_,_) -> do
+	Nothing -> appendText dat "Error: Compiler not running\n"
+	Just (inp,_) -> do
 	    s <- getVar (txtIn!text)
 	    running dat -< True
 	    left <- checkCommands dat s
