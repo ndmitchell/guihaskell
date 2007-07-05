@@ -33,6 +33,7 @@ import System.Posix.Signals
 import System.Process
 
 
+import Commands
 import Data
 import Evaluator
 
@@ -122,10 +123,14 @@ fireCommand dat@Data{txtOut=txtOut, txtIn=txtIn} = do
 	Nothing -> return ()
 	Just (pid, inp) -> do
 	    s <- getVar (txtIn!text)
-	    appendText dat (s ++ "\n")
 	    running dat -< True
-	    forkIO (hPutStrLn inp s)
-	    return ()
+	    left <- checkCommands dat s
+	    case left of 
+		Nothing -> return ()
+		Just x  -> do
+		    appendText dat (s ++ "\n")
+		    forkIO (hPutStrLn inp x)
+		    return ()
 
 {-
 stopCommand :: Data ->  IO ()
