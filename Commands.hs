@@ -44,15 +44,17 @@ checkCommands :: Data -> String -> IO (Maybe String)
 checkCommands dat inp = do 
     case parse command "" inp of
 	Left err -> return $ Just inp
-	Right xs -> runCommand dat xs [] >> return Nothing
+	Right (c, as) -> runCommand dat c as >> return Nothing
 
 --
 -- Match any GuiHaskell commands?
 --
-command :: Parser String
+command :: Parser (String, [String])
 command = do 
     char ':'
-    foldr (<|>) pzero $ map (string . fst) commands
+    c <- foldr (<|>) pzero $ map (try . string . fst) commands
+    as <- arguments
+    return (c, as)
 
 --
 -- Match command arguments
