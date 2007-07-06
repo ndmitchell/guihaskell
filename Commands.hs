@@ -8,7 +8,9 @@
 -- Stability   :  unstable
 -- Portability :  not portable
 --
--- Special interpreter commands
+-- A module to implement custom commands for GuiHaskell's REPL
+--
+-- Used for profiling and hoogle support
 --
 -----------------------------------------------------------------------------
 
@@ -75,18 +77,21 @@ runCommand dat str args =
 -- 
 -- Proof of concept function
 --
-runHello :: Data -> [String] -> IO ()
+runHello :: Command
 runHello dat arg = runExternal "echo" (Just ["Hello World!"]) (\x -> hGetContents x >>= putStrLn) (\x -> return ())
 
-runHoogle :: Data -> [String] -> IO ()
+runHoogle :: Command
 runHoogle dat args = do
-	putStrLn "Hoogle"
+	putStrLn $ "Hoogle " ++ concat args
 
-runProf :: Data -> [String] -> IO ()
+runProf :: Command
 runProf dat args = do
-	putStrLn "Prof"
+	putStrLn $ "Prof " ++ concat args
 
-runRun :: Data -> [String] -> IO ()
+--
+-- Analagous to :load
+--
+runRun :: Command
 runRun dat args = startWithFile dat $ if null args 
 					then Nothing 
 					else Just $ head args
