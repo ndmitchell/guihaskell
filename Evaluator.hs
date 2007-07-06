@@ -183,8 +183,5 @@ getHugsPath = do
             let ans = map snd $ filter fst $ zip res guesses
             return $ if null ans then Nothing else Just (head ans)
 
-getGHCiPath :: IO (Maybe FilePath)
-getGHCiPath = findExecutable "ghci"
-
 getOtherPath :: Name -> IO (Maybe FilePath)
 getOtherPath = findExecutable . map toLower . show

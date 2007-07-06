@@ -74,7 +74,7 @@ runCommand dat str args =
 -- Proof of concept function
 --
 runHello :: Data -> [String] -> IO ()
-runHello dat arg = runExternal "echo" (Just ["Hello!"]) (\x -> hGetContents x >>= putStrLn) (\x -> return ())
+runHello dat arg = runExternal "echo" (Just ["Hello World!"]) (\x -> hGetContents x >>= putStrLn) (\x -> return ())
 
 runHoogle :: Data -> [String] -> IO ()
 runHoogle dat args = do

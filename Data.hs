@@ -125,6 +125,9 @@ setHandles dat h = do
     e <- getVar $ eState dat
     eState dat -< e { states = M.adjust (\x -> x { handles = h }) (current e) (states e) }
 
+--
+--
+--
 setupFonts :: Data -> IO ()
 setupFonts dat@Data{txtOut=txtOut, txtIn=txtIn} = do
     buf <- textviewBuffer txtOut
@@ -152,7 +155,9 @@ setupFonts dat@Data{txtOut=txtOut, txtIn=txtIn} = do
             set tagFg [textTagForeground := css]
             set tagBg [textTagBackground := css]
 
-
+--
+-- Append text to output area
+--
 appendText :: Data -> String -> IO ()
 appendText dat@Data{txtOut=txtOut} s = do
     buf <- textviewBuffer txtOut
