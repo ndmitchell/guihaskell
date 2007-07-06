@@ -23,11 +23,18 @@ import System.IO
 -- import System.Process
 import Text.ParserCombinators.Parsec
 
+type Command = Data -> [String] -> IO ()
+
 --
 -- Define GuiHaskell commands
 --
-commands :: [String]
-commands = ["hoogle", "prof", "run"]
+commands :: [(String, Command)]
+commands = 
+    [ ("hello", runHello)
+    , ("hoogle", runHoogle)
+    , ("prof", runProf)
+    , ("run", runRun)
+    ]
 
 --
 -- Parses input for a GuiHaskell command
@@ -45,7 +52,7 @@ checkCommands dat inp = do
 command :: Parser String
 command = do 
     char ':'
-    foldr (<|>) pzero $ map string commands
+    foldr (<|>) pzero $ map (string . fst) commands
 
 --
 -- Match command arguments
@@ -57,10 +64,17 @@ arguments = many anyChar `sepBy` space
 -- Run a GuiHaskell command
 --
 runCommand :: Data -> String -> [String] -> IO ()
-runCommand dat "hoogle" = runHoogle dat
-runCommand dat "prof"   = runProf dat
-runCommand dat "run"    = runRun dat
-runCommand _ _		= \x -> return ()
+runCommand dat str args =
+    let command = lookup str commands in
+    case command of
+	Nothing -> return ()
+	Just x  -> x dat args
+
+-- 
+-- Proof of concept function
+--
+runHello :: Data -> [String] -> IO ()
+runHello dat arg = runExternal "echo" (Just ["Hello!"]) (\x -> hGetContents x >>= putStrLn) (\x -> return ())
 
 runHoogle :: Data -> [String] -> IO ()
 runHoogle dat args = do

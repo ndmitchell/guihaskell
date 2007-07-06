@@ -14,7 +14,7 @@
 
 module Evaluator (
 	switchEvaluator, startEvaluator, stopEvaluator,
-	startWithFile
+	startWithFile, runExternal
 	) where
 
 import Control.Concurrent
@@ -117,8 +117,27 @@ startEvaluator dat name args = do
 	getCompilerPath c = do
 	    case c of
 		Hugs -> getHugsPath
-		--"GHCI" -> getGHCiPath
-		_      -> getOtherPath c
+		_    -> getOtherPath c
+
+--
+-- Run an external program given a path to the program, an
+-- output handler and error handler
+--
+runExternal :: FilePath -> Maybe [String] -> (Handle -> IO ()) -> (Handle -> IO ()) -> IO ()
+runExternal path args outHandler errHandler = do
+      (inp,out,err,pid) <- runInteractiveProcess path
+			    (maybe [] id args)
+			    Nothing Nothing
+      putStrLn $ "Starting external tool: " ++ path
+      hSetBuffering out NoBuffering
+      hSetBuffering err NoBuffering
+      hSetBuffering inp NoBuffering
+      hSetBinaryMode out True
+      hSetBinaryMode err True
+
+      forkIO (outHandler out)
+      forkIO (errHandler err)
+      return ()
 
 --
 -- Stop the currently running evaluator
