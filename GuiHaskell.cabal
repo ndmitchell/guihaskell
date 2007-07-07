@@ -5,9 +5,9 @@ License:		BSD3
 Author:			Neil Mitchell
 Homepage:		http://www-users.cs.york.ac.uk/~ndm/guihaskell/
 Category:		System
-Build-Depends:		base, proplang
+Build-Depends:		base, proplang, gtk, glade, parsec
 
 Executable:		guihaskell
 Main-is:		Main.hs
-Other-modules:		Evaluator Data
+Other-modules:		Evaluator Data Commands
 Ghc-options:        	-O2 -Wall
