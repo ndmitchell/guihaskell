@@ -17,14 +17,13 @@
 -----------------------------------------------------------------------------
 
 module Data (
-	Data (..), EvalState(..), Evaluator(..), Name(..),
-	initialStates, getCurrentState, getHandles, setHandles,
+	Data (..), Evaluator(..), Name(..),
+	initialStates, getCurrentState, getHandles, setHandles, setCurrentFile,
 	setupFonts, appendText, appendRed, applyEscape
 	) where
 
 import PropLang.Gtk
 import PropLang.Variable
-import PropLang.Event
 
 import Data.Map (Map)
 import qualified Data.Map as M
@@ -46,33 +45,30 @@ data Data = Data {
     sb :: StatusBar,
     
     tbRun :: ToolButton,
-    tbOpen :: ToolButton,
     tbStop :: ToolButton,
+    tbRestart :: ToolButton,
+    tbOpen :: ToolButton,
     tbRecent :: ToolButton,
     tbCompiler :: ToolButton,
+    tbProfile :: ToolButton,
+
+    miNew :: MenuItem,
+    miQuit :: MenuItem,
 
     running :: Var Bool, -- is the code executing
-    filename :: Var (Maybe String), -- the main file loaded
+    filename :: Var (Maybe FilePath), -- the main file loaded
     outputTags :: Var [String],
 
-    eState :: Var EvalState
+    --
+    -- Stores the current evaluator and
+    -- the states of background evaluators
+    --
+    -- When a new evaluator is chosen, the
+    -- current evaluator is swapped into the list
+    -- and the new evalutor is put into current
+    current :: Var Name,
+    states :: Var (Map Name Evaluator)
     }
-
---
--- Stores the current evaluator and
--- the states of background evaluators
---
--- When a new evaluator is chosen, the
--- current evaluator is swapped into the list
--- and the new evalutor is put into current
---
-data EvalState = EvalState {
-    current :: Name,
-    states :: Map Name Evaluator
-    }
-
-instance Eq EvalState where
-    x == y = current x == current y -- hackish
 
 --
 -- A data structure for storing the compiler-specific
@@ -83,6 +79,10 @@ data Evaluator = Evaluator {
     promptCmd :: String -> String
     }
 
+-- hack!
+instance Eq Evaluator where
+    _ == _ = True
+
 type EHandle = (Handle, Either ProcessHandle FilePath)
 
 data Name = Hugs | GHC | GHCi deriving (Show, Read, Eq, Ord)
@@ -90,24 +90,22 @@ data Name = Hugs | GHC | GHCi deriving (Show, Read, Eq, Ord)
 --
 -- Initialize the evalutor details and states
 --
-initialStates :: EvalState
+initialStates :: Map Name Evaluator
 initialStates = 
-    EvalState {
-        current = Hugs,
-	states = M.fromList [
+	M.fromList [
 	    (Hugs, Evaluator { handles = Nothing, promptCmd = \x -> ":set -p\"" ++ x ++ "\"" }),
-	    (GHC, Evaluator { handles = Nothing, promptCmd = \x -> "" }),
+	    (GHC, Evaluator { handles = Nothing, promptCmd = \_ -> "" }),
 	    (GHCi, Evaluator { handles = Nothing, promptCmd = \x -> ":set prompt " ++ x })
 	]
-    }
 
 --
 -- Fetch the current evaluator state
 --
 getCurrentState :: Data -> IO Evaluator
 getCurrentState dat = do
-    e <- getVar $ eState dat
-    M.lookup (current e) (states e)
+    c <- getVar $ current dat
+    s <- getVar $ states dat
+    M.lookup c s
 
 --
 -- Get the handles for the current evaluator
@@ -122,15 +120,23 @@ getHandles dat = do
 --
 setHandles :: Data -> Maybe EHandle -> IO ()
 setHandles dat h = do
-    e <- getVar $ eState dat
-    eState dat -< e { states = M.adjust (\x -> x { handles = h }) (current e) (states e) }
+    c <- getVar $ current dat
+    s <- getVar $ states dat
+    states dat -< M.adjust (\x -> x { handles = h }) c s
+
+--
+-- Set the currently open file
+--
+setCurrentFile :: Data -> Maybe FilePath -> IO ()
+setCurrentFile dat path = do
+    filename dat -< path
 
 --
 --
 --
 setupFonts :: Data -> IO ()
-setupFonts dat@Data{txtOut=txtOut, txtIn=txtIn} = do
-    buf <- textviewBuffer txtOut
+setupFonts Data{txtOut=out,txtIn=inp} = do
+    buf <- textviewBuffer out
     tags <- textBufferGetTagTable buf
     
     mapM (addTags tags) [minBound..maxBound]
@@ -138,8 +144,8 @@ setupFonts dat@Data{txtOut=txtOut, txtIn=txtIn} = do
     fdesc <- fontDescriptionNew
     fontDescriptionSetFamily fdesc "Monospace"
 
-    widgetModifyFont (getTextViewRaw txtOut) (Just fdesc)
-    widgetModifyFont (getTextViewRaw txtIn) (Just fdesc)
+    widgetModifyFont (getTextViewRaw out) (Just fdesc)
+    widgetModifyFont (getTextViewRaw inp) (Just fdesc)
 
     where
         addTags tags col = do
@@ -159,16 +165,16 @@ setupFonts dat@Data{txtOut=txtOut, txtIn=txtIn} = do
 -- Append text to output area
 --
 appendText :: Data -> String -> IO ()
-appendText dat@Data{txtOut=txtOut} s = do
-    buf <- textviewBuffer txtOut
+appendText dat@Data{txtOut=out} s = do
+    buf <- textviewBuffer out
     end <- textBufferGetEndIter buf
     textBufferInsert buf end s
     
     len <- textBufferGetCharCount buf
     strt <- textBufferGetIterAtOffset buf (len - length s)
-    end <- textBufferGetEndIter buf
+    end2 <- textBufferGetEndIter buf
     tags <- getVar (outputTags dat)
-    mapM_ (f buf strt end) tags
+    mapM_ (f buf strt end2) tags
     where
         f buf strt end tag = textBufferApplyTagByName buf tag strt end
 
@@ -185,8 +191,8 @@ appendRed dat msg = do
 applyEscape :: Data -> EscapeCode -> IO ()
 applyEscape dat (FormatAttribute Normal) = outputTags dat -< []
 applyEscape dat (FormatForeground Green) = outputTags dat -< ["fgGreen"]
-applyEscape dat _ = return ()
+applyEscape _ _ = return ()
 
 
-when_ :: Monad m => Bool -> m () -> m ()
-when_ b x = when b (x >> return ())
+--when_ :: Monad m => Bool -> m () -> m ()
+--when_ b x = when b (x >> return ())
