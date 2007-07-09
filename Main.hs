@@ -47,7 +47,7 @@ main = do
 
     let f x = getCtrl window x
         dat = Data window
-                  (f "txtOut") (f "txtIn") (f "sb")
+                  (f "txtOut") (f "txtIn") (f "txtSelect") (f "sb")
                   (f "tbRun")  (f "tbStop") (f "tbRestart")
 		  (f "tbOpen") (f "tbRecent") (f "tbCompiler") (f "tbProfile")
 		  (f "miNew") (f "miQuit")
@@ -102,7 +102,8 @@ runFileDialog = do
 setupRelations :: Data -> IO ()
 setupRelations dat@Data
     { tbRun=tbRun,tbStop=tbStop,tbRestart=tbRestart,tbCompiler=tbCompiler,
-      tbOpen=tbOpen,txtIn=txtIn,miQuit=miQuit,running=running
+      tbOpen=tbOpen,txtIn=txtIn,miQuit=miQuit,running=running,filename=filename,
+      txtSelect=txtSelect
     } = do
 
     tbRun!onClicked 	 += fireCommand dat 
@@ -111,8 +112,11 @@ setupRelations dat@Data
     tbOpen!onClicked 	 += (runFileDialog >>= setCurrentFile dat >> startWithFile dat)
     -- tbStop!onClicked  += stopCommand dat pid
     onEnterKey txtIn $ fireCommand dat 
-    
+   
+    -- Menu doesn't work yet
     --miQuit!onActivated += exitWith ExitSuccess
+    
+    txtSelect!text =< (with1 filename $ maybe "" id)
     
     tbRun!enabled =< with1 running not
     tbStop!enabled =<= running

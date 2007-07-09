@@ -42,6 +42,7 @@ data Data = Data {
     window :: Window,
     txtOut :: TextView,
     txtIn :: TextView,
+    txtSelect :: TextView,
     sb :: StatusBar,
     
     tbRun :: ToolButton,
