@@ -36,9 +36,9 @@ prompt = "\x1B[0;32m%s>\x1B[0m \x1B[50m"
 --
 switchEvaluator :: Data -> Name -> IO ()
 switchEvaluator dat n = do
-    setCurrent
-    handles <- getHandles dat
-    case handles of
+    current dat -< n
+    hndls <- getHandles dat
+    case hndls of
 	Nothing -> do
 	    startEvaluator dat n Nothing
 	Just (inp,hndl) -> do
@@ -47,11 +47,6 @@ switchEvaluator dat n = do
 	    case hndl of
 	      Left _     -> hPutStrLn inp $ ""
 	      Right file -> do removeFile file; putStrLn "Removed temp buffer"
-    where
-	setCurrent :: IO ()
-	setCurrent = do
-	    e <- getVar $ eState dat
-	    eState dat -< e { current = n }
 
 --
 -- Start an evaluator
@@ -64,33 +59,22 @@ startEvaluator dat name args = do
 		appendText dat "Compiler not found, please install"
 	    Just x -> do
 		case args of
-		    Just as -> do
-			runSeparate x
+		    Just _ -> do
+			runCompiler x
 		    Nothing -> do
 			case name of
 			    Hugs -> do
-				runSeparate x
+				runCompiler x
 			    GHCi -> do
-				runSeparate x
+				runCompiler x
 			    GHC -> do
 				(file, hndl) <- openTempFile "/tmp" "guihaskell.hs"
 				hSetBuffering hndl NoBuffering
 				setHandles dat $ Just (hndl,Right file)
-			    _   -> 
-				error "This shouldn't happen"
-	      
     where
-	runSeparate path = do
+	runCompiler path = do
 	    s <- getCurrentState dat
-	    (inp,out,err,pid) <- runInteractiveProcess path
-				  (maybe [] id args) 
-				  Nothing Nothing
-	    putStrLn "Starting interactive command"
-	    hSetBuffering out NoBuffering
-	    hSetBuffering err NoBuffering
-	    hSetBuffering inp NoBuffering
-	    hSetBinaryMode out True
-	    hSetBinaryMode err True
+	    (inp,out,err,pid) <- runExternal path args
 
 	    appendText dat $ "\nLoading " ++ show name ++ "...\n"
 	    hPutStrLn inp $ (promptCmd s) prompt
@@ -120,57 +104,52 @@ startEvaluator dat name args = do
 		_    -> getOtherPath c
 
 --
--- Run an external program given a path to the program, an
--- output handler and error handler
+-- Useful wrapper around runInteractiveProcess
 --
-runExternal :: FilePath -> Maybe [String] -> (Handle -> IO ()) -> (Handle -> IO ()) -> IO ()
-runExternal path args outHandler errHandler = do
-      (inp,out,err,pid) <- runInteractiveProcess path
-			    (maybe [] id args)
-			    Nothing Nothing
+runExternal :: FilePath -> Maybe [String] -> IO (Handle, Handle, Handle, ProcessHandle)
+runExternal path args = do
+      hndls@(inp, out, err, _) <- runInteractiveProcess path
+				    (maybe [] id args)
+				    Nothing Nothing
       putStrLn $ "Starting external tool: " ++ path
       hSetBuffering out NoBuffering
       hSetBuffering err NoBuffering
       hSetBuffering inp NoBuffering
       hSetBinaryMode out True
       hSetBinaryMode err True
-
-      forkIO (outHandler out)
-      forkIO (errHandler err)
-      return ()
+      return hndls
 
 --
 -- Stop the currently running evaluator
 --
--- Should this stop all evaluators?
---
 stopEvaluator :: Data -> IO ()
 stopEvaluator dat = do
-    handles <- getHandles dat
-    case handles of
+    hndls <- getHandles dat
+    case hndls of
 	Nothing -> return ()
 	Just (inp,Left pid) -> do
 	    setHandles dat Nothing
 	    hPutStrLn inp "\n:quit\n"
 	    waitForProcess pid
 	    return ()
-	Just (inp,Right file) -> do
+	Just (_,Right file) -> do
 	    setHandles dat Nothing
 	    removeFile file
 
 --
 -- Run a compiler with a file
 --
-startWithFile :: Data -> Maybe FilePath -> IO ()
-startWithFile dat path = do
-    e <- getVar $ eState dat
+startWithFile :: Data -> IO ()
+startWithFile dat = do
+    comp <- getVar $ current dat
+    path <- getVar $ filename dat
     case path of
 	Nothing -> 
 	    appendText dat "Error: No file selected.\n"
 	Just p  -> do
 	    stopEvaluator dat
 	    appendText dat "Evaluating file...\n"
-	    startEvaluator dat (current e) $ Just [p]
+	    startEvaluator dat comp $ Just [p]
 
 getHugsPath :: IO (Maybe FilePath)
 getHugsPath = do
