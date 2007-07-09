@@ -22,13 +22,10 @@ import System.IO
 
 import Control.Concurrent
 
-import Graphics.UI.Gtk.Abstract.Widget
+import Graphics.UI.Gtk hiding (Action, Window, MenuItem, TextView, ToolButton, Event, onClicked)
 import Graphics.UI.Gtk.Glade
-import Graphics.UI.Gtk.MenuComboToolbar.ComboBox
-import Graphics.UI.Gtk.Selectors.FileChooser
-import Graphics.UI.Gtk.Selectors.FileChooserDialog
-import Graphics.UI.Gtk.Windows.Dialog
 
+import System.Exit
 import System.Posix.Signals
 import System.Process
 
@@ -45,29 +42,27 @@ main = do
     running <- newVar True
     filename <- newVar Nothing
     tags <- newVar []
-    eState <- newVar initialStates
+    current <- newVar Hugs
+    states <- newVar initialStates
 
     let f x = getCtrl window x
         dat = Data window
                   (f "txtOut") (f "txtIn") (f "sb")
-                  (f "tbRun") (f "tbOpen") (f "tbStop") (f "tbRecent") (f "tbCompiler")
-                  running filename tags eState
+                  (f "tbRun")  (f "tbStop") (f "tbRestart")
+		  (f "tbOpen") (f "tbRecent") (f "tbCompiler") (f "tbProfile")
+		  (f "miNew") (f "miQuit")
+                  running filename tags current states
 
     runCompilerDialog >>= switchEvaluator dat
     setupFonts dat
     setupRelations dat
 
     showWindowMain window
-   
-   {-
-    case res of
-        Nothing -> return ()
-        Just (pid,inp) -> do
-            hPutStrLn inp "\n:quit\n"
-            waitForProcess pid
-            return ()
-  -}
 
+--
+-- Run the compiler selection dialog and
+-- return the selection
+--
 runCompilerDialog :: IO (Name)
 runCompilerDialog = do
     Just xml <- xmlNew "res/compilerdialog.glade"
@@ -85,6 +80,10 @@ runCompilerDialog = do
 	    where 
 	      defaultName = Hugs
 
+--
+-- Run an open file dialog and
+-- return the selection
+--
 runFileDialog :: IO (Maybe FilePath)
 runFileDialog = do
     dialog <- fileChooserDialogNew Nothing Nothing FileChooserActionOpen [("Okay", ResponseOk), ("Cancel", ResponseCancel)]
@@ -97,25 +96,30 @@ runFileDialog = do
 		ResponseOk -> fileChooserGetFilename dialog
 		_	   -> return Nothing
 
+--
+-- Defines the actions for GUI elements
+--
 setupRelations :: Data -> IO ()
-setupRelations dat@Data{tbRun=tbRun,tbStop=tbStop,tbCompiler=tbCompiler,tbOpen=tbOpen,txtIn=txtIn,
-    running=running
+setupRelations dat@Data
+    { tbRun=tbRun,tbStop=tbStop,tbRestart=tbRestart,tbCompiler=tbCompiler,
+      tbOpen=tbOpen,txtIn=txtIn,miQuit=miQuit,running=running
     } = do
 
-    handles <- getHandles dat
-    case handles of
-        Nothing -> return ()
-        Just _ -> do
-            tbRun!onClicked 	 += fireCommand dat 
-	    tbCompiler!onClicked += (runCompilerDialog >>= switchEvaluator dat)
-	    tbOpen!onClicked 	 += (runFileDialog >>= startWithFile dat)
-            -- tbStop!onClicked  += stopCommand dat pid
-            onEnterKey txtIn $ fireCommand dat 
+    tbRun!onClicked 	 += fireCommand dat 
+    tbRestart!onClicked  += (startWithFile dat)
+    tbCompiler!onClicked += (runCompilerDialog >>= switchEvaluator dat)
+    tbOpen!onClicked 	 += (runFileDialog >>= setCurrentFile dat >> startWithFile dat)
+    -- tbStop!onClicked  += stopCommand dat pid
+    onEnterKey txtIn $ fireCommand dat 
+    
+    --miQuit!onActivated += exitWith ExitSuccess
     
     tbRun!enabled =< with1 running not
     tbStop!enabled =<= running
 
-
+--
+-- Sends entered text to processes
+--
 fireCommand :: Data -> IO ()
 fireCommand dat@Data{txtOut=txtOut, txtIn=txtIn} = do
     handles <- getHandles dat
@@ -139,5 +143,5 @@ stopCommand dat = do
     case handles of
 	Nothing -> return ()
 	Just (pid, inp) -> do
-	    signalProcess sigINT pid -- need to convert ProcessHandle to ProcessId
+	    signalProcess sigINT pid
 -}
