@@ -21,6 +21,7 @@ module Commands (
 import Data
 import Evaluator
 
+import Control.Concurrent
 import System.IO
 -- import System.Process
 import Text.ParserCombinators.Parsec
@@ -45,7 +46,7 @@ commands =
 checkCommands :: Data -> String -> IO (Maybe String)
 checkCommands dat inp = do 
     case parse command "" inp of
-	Left err -> return $ Just inp
+	Left _ -> return $ Just inp
 	Right (c, as) -> runCommand dat c as >> return Nothing
 
 --
@@ -69,8 +70,8 @@ arguments = many anyChar `sepBy` space
 --
 runCommand :: Data -> String -> [String] -> IO ()
 runCommand dat str args =
-    let command = lookup str commands in
-    case command of
+    let c = lookup str commands in
+    case c of
 	Nothing -> return ()
 	Just x  -> x dat args
 
@@ -78,20 +79,25 @@ runCommand dat str args =
 -- Proof of concept function
 --
 runHello :: Command
-runHello dat arg = runExternal "echo" (Just ["Hello World!"]) (\x -> hGetContents x >>= putStrLn) (\x -> return ())
+runHello _ _ = do
+    (_, out, _, _) <- runExternal "echo" (Just ["Hello World!"]) 
+    forkIO ((\x -> hGetContents x >>= putStrLn) out)
+    return ()
 
 runHoogle :: Command
-runHoogle dat args = do
+runHoogle _ args = do
 	putStrLn $ "Hoogle " ++ concat args
 
 runProf :: Command
-runProf dat args = do
+runProf _ args = do
 	putStrLn $ "Prof " ++ concat args
 
 --
 -- Analagous to :load
 --
 runRun :: Command
-runRun dat args = startWithFile dat $ if null args 
-					then Nothing 
-					else Just $ head args
+runRun dat args = do 
+    if null args 
+      then setCurrentFile dat Nothing 
+      else setCurrentFile dat $ Just $ head args
+    startWithFile dat
