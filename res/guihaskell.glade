@@ -41,23 +41,23 @@
 	      <property name="use_underline">True</property>
 
 	      <child>
-		<widget class="GtkMenu" id="menu1">
+		<widget class="GtkMenu" id="menuitem1_menu">
 
 		  <child>
-		    <widget class="GtkImageMenuItem" id="new1">
+		    <widget class="GtkImageMenuItem" id="item1">
 		      <property name="visible">True</property>
 		      <property name="label">gtk-new</property>
 		      <property name="use_stock">True</property>
-		      <signal name="activate" handler="on_new1_activate" last_modification_time="Mon, 19 Mar 2007 05:14:32 GMT"/>
+		      <signal name="activate" handler="on_item1_activate"/>
 		    </widget>
 		  </child>
 
 		  <child>
-		    <widget class="GtkImageMenuItem" id="open1">
+		    <widget class="GtkImageMenuItem" id="open">
 		      <property name="visible">True</property>
 		      <property name="label">gtk-open</property>
 		      <property name="use_stock">True</property>
-		      <signal name="activate" handler="on_open1_activate" last_modification_time="Mon, 19 Mar 2007 05:14:32 GMT"/>
+		      <signal name="activate" handler="evalFile" last_modification_time="Thu, 21 Jun 2007 02:53:34 GMT"/>
 		    </widget>
 		  </child>
 
@@ -86,11 +86,12 @@
 		  </child>
 
 		  <child>
-		    <widget class="GtkImageMenuItem" id="quit1">
+		    <widget class="GtkImageMenuItem" id="miQuit">
 		      <property name="visible">True</property>
 		      <property name="label">gtk-quit</property>
 		      <property name="use_stock">True</property>
-		      <signal name="activate" handler="on_quit1_activate" last_modification_time="Mon, 19 Mar 2007 05:14:32 GMT"/>
+		      <signal name="activate" handler="gtk_main_quit" last_modification_time="Thu, 21 Jun 2007 03:07:57 GMT"/>
+		      <accelerator key="q" modifiers="GDK_CONTROL_MASK" signal="activate"/>
 		    </widget>
 		  </child>
 		</widget>
@@ -105,7 +106,7 @@
 	      <property name="use_underline">True</property>
 
 	      <child>
-		<widget class="GtkMenu" id="menu2">
+		<widget class="GtkMenu" id="menuitem2_menu">
 
 		  <child>
 		    <widget class="GtkImageMenuItem" id="cut1">
@@ -152,11 +153,6 @@
 	      <property name="visible">True</property>
 	      <property name="label" translatable="yes">_View</property>
 	      <property name="use_underline">True</property>
-
-	      <child>
-		<widget class="GtkMenu" id="menu3">
-		</widget>
-	      </child>
 	    </widget>
 	  </child>
 
@@ -167,7 +163,7 @@
 	      <property name="use_underline">True</property>
 
 	      <child>
-		<widget class="GtkMenu" id="menu4">
+		<widget class="GtkMenu" id="menuitem4_menu">
 
 		  <child>
 		    <widget class="GtkMenuItem" id="about1">
@@ -242,6 +238,22 @@
 		      <property name="label" translatable="yes"> Stop</property>
 		      <property name="use_underline">True</property>
 		      <property name="stock_id">gtk-stop</property>
+		      <property name="visible_horizontal">True</property>
+		      <property name="visible_vertical">True</property>
+		      <property name="is_important">True</property>
+		    </widget>
+		    <packing>
+		      <property name="expand">False</property>
+		      <property name="homogeneous">True</property>
+		    </packing>
+		  </child>
+
+		  <child>
+		    <widget class="GtkToolButton" id="tbRestart">
+		      <property name="visible">True</property>
+		      <property name="label" translatable="yes">Refresh</property>
+		      <property name="use_underline">True</property>
+		      <property name="stock_id">gtk-refresh</property>
 		      <property name="visible_horizontal">True</property>
 		      <property name="visible_vertical">True</property>
 		      <property name="is_important">True</property>
@@ -366,7 +378,7 @@
 		  <property name="visible">True</property>
 		  <property name="label" translatable="yes">Compiler</property>
 		  <property name="use_underline">True</property>
-		  <property name="stock_id">gtk-media-record</property>
+		  <property name="stock_id">gtk-preferences</property>
 		  <property name="visible_horizontal">True</property>
 		  <property name="visible_vertical">True</property>
 		  <property name="is_important">True</property>
@@ -407,7 +419,33 @@
 	  </child>
 
 	  <child>
-	    <placeholder/>
+	    <widget class="GtkToolbar" id="toolbar3">
+	      <property name="visible">True</property>
+	      <property name="orientation">GTK_ORIENTATION_HORIZONTAL</property>
+	      <property name="toolbar_style">GTK_TOOLBAR_BOTH_HORIZ</property>
+	      <property name="tooltips">True</property>
+	      <property name="show_arrow">True</property>
+
+	      <child>
+		<widget class="GtkToolButton" id="tbProfile">
+		  <property name="visible">True</property>
+		  <property name="label" translatable="yes">Profile</property>
+		  <property name="use_underline">True</property>
+		  <property name="stock_id">gtk-zoom-fit</property>
+		  <property name="visible_horizontal">True</property>
+		  <property name="visible_vertical">True</property>
+		  <property name="is_important">True</property>
+		</widget>
+		<packing>
+		  <property name="expand">False</property>
+		  <property name="homogeneous">True</property>
+		</packing>
+	      </child>
+	    </widget>
+	    <packing>
+	      <property name="tab_expand">False</property>
+	      <property name="tab_fill">True</property>
+	    </packing>
 	  </child>
 
 	  <child>
