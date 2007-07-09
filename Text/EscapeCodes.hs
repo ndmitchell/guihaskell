@@ -58,7 +58,7 @@ parseEscapeCodes x = f 0 x
 getColor :: Color -> (Int,Int,Int)
 getColor x = case lookup x colors of
                  Nothing -> (0,0,0)
-                 Just x -> x
+                 Just t -> t
     where
         colors = [(Black, (0,0,0)),
                   (Red, (h,0,0)),
