@@ -119,7 +119,7 @@ setupRelations dat@Data
     --miQuit!onActivated += exitWith ExitSuccess
     --miFile!menu =<= foomenu
     
-    txtSelect!text =< (with1 filename $ maybe "" id)
+    tie (txtSelect!text) filename (Just . id) (maybe "" id)
     
     tbRun!enabled =< with1 running not
     tbStop!enabled =<= running
