@@ -50,7 +50,7 @@ main = do
                   (f "txtOut") (f "txtIn") (f "txtSelect") (f "sb")
                   (f "tbRun")  (f "tbStop") (f "tbRestart")
 		  (f "tbOpen") (f "tbRecent") (f "tbCompiler") (f "tbProfile")
-		  (f "miNew") (f "miQuit")
+		  (f "miFile") (f "miNew") (f "miQuit")
                   running filename tags current states
 
     runCompilerDialog >>= switchEvaluator dat
@@ -101,9 +101,11 @@ runFileDialog = do
 --
 setupRelations :: Data -> IO ()
 setupRelations dat@Data
-    { tbRun=tbRun,tbStop=tbStop,tbRestart=tbRestart,tbCompiler=tbCompiler,
-      tbOpen=tbOpen,txtIn=txtIn,miQuit=miQuit,running=running,filename=filename,
-      txtSelect=txtSelect
+    { tbRun=tbRun, tbStop=tbStop, tbRestart=tbRestart
+    , tbOpen=tbOpen, tbCompiler=tbCompiler
+    , txtIn=txtIn, txtSelect=txtSelect
+    , miQuit=miQuit, miFile=miFile
+    , running=running, filename=filename
     } = do
 
     tbRun!onClicked 	 += fireCommand dat 
@@ -115,6 +117,7 @@ setupRelations dat@Data
    
     -- Menu doesn't work yet
     --miQuit!onActivated += exitWith ExitSuccess
+    --miFile!menu =<= foomenu
     
     txtSelect!text =< (with1 filename $ maybe "" id)
     

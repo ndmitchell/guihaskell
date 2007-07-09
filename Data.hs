@@ -53,6 +53,7 @@ data Data = Data {
     tbCompiler :: ToolButton,
     tbProfile :: ToolButton,
 
+    miFile :: MenuItem,
     miNew :: MenuItem,
     miQuit :: MenuItem,
 
