@@ -35,31 +35,32 @@ import Text.EscapeCodes
 import Control.Monad
 import Numeric
 
-import Graphics.UI.Gtk hiding (Action, Window, MenuItem, TextView, ToolButton, Event, onClicked)
+import Graphics.UI.Gtk hiding (Action, Window, ComboBox, MenuItem, TextView, ToolButton, Event, onClicked, onChanged)
 
 
 data Data = Data {
-    window :: Window,
-    txtOut :: TextView,
-    txtIn :: TextView,
-    txtSelect :: TextEntry,
-    sb :: StatusBar,
+      window :: Window
+    , txtOut :: TextView
+    , txtIn :: TextView
+    , txtSelect :: TextEntry
+    , sb :: StatusBar
     
-    tbRun :: ToolButton,
-    tbStop :: ToolButton,
-    tbRestart :: ToolButton,
-    tbOpen :: ToolButton,
-    tbRecent :: ToolButton,
-    tbCompiler :: ToolButton,
-    tbProfile :: ToolButton,
+    , tbRun :: ToolButton
+    , tbStop :: ToolButton
+    , tbRestart :: ToolButton
+    , tbOpen :: ToolButton
+    , tbRecent :: ToolButton
+    , tbProfile :: ToolButton
 
-    miFile :: MenuItem,
-    miNew :: MenuItem,
-    miQuit :: MenuItem,
+    , cbCompiler :: ComboBox
 
-    running :: Var Bool, -- is the code executing
-    filename :: Var (Maybe FilePath), -- the main file loaded
-    outputTags :: Var [String],
+    , miFile :: MenuItem
+    , miNew :: MenuItem
+    , miQuit :: MenuItem
+
+    , running :: Var Bool -- is the code executing
+    , filename :: Var (Maybe FilePath) -- the main file loaded
+    , outputTags :: Var [String]
 
     --
     -- Stores the current evaluator and
@@ -68,8 +69,8 @@ data Data = Data {
     -- When a new evaluator is chosen, the
     -- current evaluator is swapped into the list
     -- and the new evalutor is put into current
-    current :: Var Name,
-    states :: Var (Map Name Evaluator)
+    , current :: Var Name
+    , states :: Var (Map Name Evaluator)
     }
 
 --
