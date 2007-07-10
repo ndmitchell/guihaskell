@@ -1,6 +1,7 @@
 TODO:
 
 * Make sure GuiHaskell cleans up after itself, e.g. terminating interpreters
-* Expand the evalutor state to move more compiler-dependent details into data structure
-* Make GHC work
-* Format the code and add some basic documentation
+* Improve GHC support or drop it (if GHCi suffices)
+* More documentation in GuiHaskell?
+* Fix the widget collector or drop menus
+* Hyperlinked output
