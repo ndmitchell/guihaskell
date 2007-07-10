@@ -34,13 +34,12 @@ prompt = "\x1B[0;32m%s>\x1B[0m \x1B[50m"
 --
 -- Switch the currently running evaluator
 --
-switchEvaluator :: Data -> Name -> IO ()
-switchEvaluator dat n = do
-    current dat -< n
+switchEvaluator :: Data -> IO ()
+switchEvaluator dat = do
     hndls <- getHandles dat
     case hndls of
 	Nothing -> do
-	    startEvaluator dat n Nothing
+	    startEvaluator dat Nothing
 	Just (inp,hndl) -> do
 	    appendText dat "\nSwitching...\n"
 	    putStrLn "Switching evaluators"
@@ -51,8 +50,9 @@ switchEvaluator dat n = do
 --
 -- Start an evaluator
 --
-startEvaluator :: Data -> Name -> Maybe [String] -> IO ()
-startEvaluator dat name args = do
+startEvaluator :: Data -> Maybe [String] -> IO ()
+startEvaluator dat args = do
+	name <- getVar $ current dat
 	path <- getCompilerPath name
 	case path of
 	    Nothing -> do
@@ -73,6 +73,7 @@ startEvaluator dat name args = do
 				setHandles dat $ Just (hndl,Right file)
     where
 	runCompiler path = do
+	    name <- getVar $ current dat
 	    s <- getCurrentState dat
 	    (inp,out,err,pid) <- runExternal path args
 
@@ -141,7 +142,6 @@ stopEvaluator dat = do
 --
 startWithFile :: Data -> IO ()
 startWithFile dat = do
-    comp <- getVar $ current dat
     path <- getVar $ filename dat
     case path of
 	Nothing -> 
@@ -149,7 +149,7 @@ startWithFile dat = do
 	Just p  -> do
 	    stopEvaluator dat
 	    appendText dat "Evaluating file...\n"
-	    startEvaluator dat comp $ Just [p]
+	    startEvaluator dat $ Just [p]
 
 getHugsPath :: IO (Maybe FilePath)
 getHugsPath = do
