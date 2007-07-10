@@ -39,10 +39,10 @@ main :: IO ()
 main = do
     initPropLang
     window <- getWindow "res/guihaskell.glade" "wndMain"
-    running <- newVar True
-    filename <- newVar Nothing
+    running <- newVarName "evaluator_on_off" True
+    filename <- newVarName "filename_selection" Nothing
     tags <- newVar []
-    current <- newVar Hugs
+    current <- newVarName "current_evaluator" Hugs
     states <- newVar initialStates
 
     let f x = getCtrl window x
