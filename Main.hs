@@ -22,7 +22,7 @@ import System.IO
 
 import Control.Concurrent
 
-import Graphics.UI.Gtk hiding (Action, Window, MenuItem, TextView, ToolButton, Event, onClicked)
+import Graphics.UI.Gtk hiding (Action, Window, ComboBox, MenuItem, TextView, ToolButton, Event, onClicked, onChanged)
 import Graphics.UI.Gtk.Glade
 
 import System.Exit
@@ -49,36 +49,15 @@ main = do
         dat = Data window
                   (f "txtOut") (f "txtIn") (f "txtSelect") (f "sb")
                   (f "tbRun")  (f "tbStop") (f "tbRestart")
-		  (f "tbOpen") (f "tbRecent") (f "tbCompiler") (f "tbProfile")
+		  (f "tbOpen") (f "tbRecent") (f "tbProfile") (f "cbCompiler") 
 		  (f "miFile") (f "miNew") (f "miQuit")
                   running filename tags current states
 
-    runCompilerDialog >>= switchEvaluator dat
+    startEvaluator dat Nothing
     setupFonts dat
     setupRelations dat
 
     showWindowMain window
-
---
--- Run the compiler selection dialog and
--- return the selection
---
-runCompilerDialog :: IO (Name)
-runCompilerDialog = do
-    Just xml <- xmlNew "res/compilerdialog.glade"
-    dialog   <- xmlGetWidget xml castToDialog "compilerDialog"
-    combo    <- xmlGetWidget xml castToComboBox "compilerSelection"
-    response <- dialogRun dialog
-    widgetHide dialog
-    handleResponse combo response
-      where 
-	  handleResponse combo response =
-	      case response of
-		  ResponseOk -> (return . maybe defaultName read) =<< 
-				  comboBoxGetActiveText combo
-		  _          -> return defaultName
-	    where 
-	      defaultName = Hugs
 
 --
 -- Run an open file dialog and
@@ -102,23 +81,26 @@ runFileDialog = do
 setupRelations :: Data -> IO ()
 setupRelations dat@Data
     { tbRun=tbRun, tbStop=tbStop, tbRestart=tbRestart
-    , tbOpen=tbOpen, tbCompiler=tbCompiler
+    , tbOpen=tbOpen, cbCompiler=cbCompiler
     , txtIn=txtIn, txtSelect=txtSelect
     , miQuit=miQuit, miFile=miFile
     , running=running, filename=filename
+    , current=current
     } = do
 
     tbRun!onClicked 	 += fireCommand dat 
     tbRestart!onClicked  += (startWithFile dat)
-    tbCompiler!onClicked += (runCompilerDialog >>= switchEvaluator dat)
     tbOpen!onClicked 	 += (runFileDialog >>= setCurrentFile dat >> startWithFile dat)
     -- tbStop!onClicked  += stopCommand dat pid
     onEnterKey txtIn $ fireCommand dat 
+
+    current =< with1 (cbCompiler!text) (\x -> if null x then Hugs else read x)
+    current += switchEvaluator dat
    
     -- Menu doesn't work yet
     --miQuit!onActivated += exitWith ExitSuccess
     --miFile!menu =<= foomenu
-    
+   
     tie (txtSelect!text) filename (Just . id) (maybe "" id)
     
     tbRun!enabled =< with1 running not
