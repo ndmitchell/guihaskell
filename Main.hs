@@ -92,7 +92,14 @@ setupRelations dat@Data
     tbRestart!onClicked  += (startWithFile dat)
     tbOpen!onClicked 	 += (runFileDialog >>= setCurrentFile dat >> startWithFile dat)
     -- tbStop!onClicked  += stopCommand dat pid
-    onEnterKey txtIn $ fireCommand dat 
+   
+    -- This approach uses the key event for TextView, but
+    -- it's still a bit buggy
+    --enterKey <- newVarName "enter_key_pressed?" False
+    --enterKey =< with (txtIn!key) ((==) "Return")
+    --enterKey += (fireCommand dat >> (txtIn!text -< " "))
+    
+    onEnterKey txtIn $ fireCommand dat
 
     current =< with1 (cbCompiler!text) (\x -> if null x then Hugs else read x)
     current += switchEvaluator dat
