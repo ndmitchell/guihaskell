@@ -41,23 +41,29 @@ main = do
     initPropLang
     confInit
     window <- getWindow "res/guihaskell.glade" "wndMain"
+    prefWindow <- getWindow "res/prefdialog.glade" "wndPref"
     running <- newVarName "evaluator_on_off" True
     filename <- newVarName "filename_selection" Nothing
     tags <- newVar []
     -- Configuration variables
-    profFlags <- newVarWithName "profiler_flags_conf" (newConfValue "profFlags")
+    profCFlags <- newVarWithName "profiler_cflags_conf" (newConfValue "profCFlags")
+    profRFlags <- newVarWithName "profiler_rflags_conf" (newConfValue "profRFlags")
     -- Evaluator variables
     current <- newVarName "current_evaluator" Hugs
     states <- newVarName "evaluator_states" initialStates
 
     let f x = getCtrl window x
+	g x = getCtrl prefWindow x
         dat = Data window
-                  (f "txtOut") (f "txtIn") (f "txtSelect") (f "txtFlags") (f "sb")
+                  (f "txtOut") (f "txtIn") (f "txtSelect") (f "sb")
                   (f "tbRun")  (f "tbStop") (f "tbRestart")
-		  (f "tbOpen") (f "tbRecent") (f "tbProfile") (f "cbCompiler") 
+		  (f "tbOpen") (f "tbRecent") (f "tbProfile") (f "tbPref")
+		  (f "cbCompiler") 
 		  (f "miFile") (f "miNew") (f "miQuit")
+		  prefWindow
+		  (g "txtProfCFlags") (g "txtProfRFlags") (g "tbClose")
                   running filename tags 
-		  profFlags
+		  profCFlags profRFlags
 		  current states
 
     startEvaluator dat Nothing
@@ -87,11 +93,14 @@ runFileDialog = do
 --
 setupRelations :: Data -> IO ()
 setupRelations dat@Data
-    { tbRun=tbRun, tbStop=tbStop, tbRestart=tbRestart
-    , tbOpen=tbOpen, cbCompiler=cbCompiler
-    , txtIn=txtIn, txtSelect=txtSelect, txtFlags=txtFlags
+    { wndPref=wndPref
+    , tbRun=tbRun, tbStop=tbStop, tbRestart=tbRestart
+    , tbOpen=tbOpen, tbPref=tbPref, cbCompiler=cbCompiler
+    , txtIn=txtIn, txtSelect=txtSelect
     , miQuit=miQuit, miFile=miFile
-    , running=running, filename=filename, profFlags=profFlags
+    , tbClose=tbClose
+    , running=running, filename=filename
+    , profCFlags=profCFlags, profRFlags=profRFlags
     , current=current
     } = do
 
@@ -99,6 +108,10 @@ setupRelations dat@Data
     tbRestart!onClicked  += (startWithFile dat)
     tbOpen!onClicked 	 += (runFileDialog >>= setCurrentFile dat >> startWithFile dat)
     -- tbStop!onClicked  += stopCommand dat pid
+
+    -- Hackish. PropLang it later.
+    tbPref!onClicked 	 += (widgetShow $ getWindowRaw wndPref)
+    tbClose!onClicked	 += (widgetHide $ getWindowRaw wndPref)
    
     -- This approach uses the key event for TextView, but
     -- it's still a bit buggy
@@ -111,11 +124,6 @@ setupRelations dat@Data
     current =< with1 (cbCompiler!text) (\x -> if null x then Hugs else read x)
     current += switchEvaluator dat
 
-    -- Proof of concept of configuration system
-    -- Now extend it into a new dialog
-    txtFlags!text -<- profFlags
-    txtFlags!text =<>= profFlags
-   
     -- Menu doesn't work yet
     --miQuit!onActivated += exitWith ExitSuccess
     --miFile!menu =<= foomenu

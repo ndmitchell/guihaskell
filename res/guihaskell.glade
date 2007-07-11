@@ -431,29 +431,16 @@ GHC</property>
 	      </child>
 
 	      <child>
-		<widget class="GtkToolItem" id="toolitem4">
+		<widget class="GtkToolButton" id="tbPref">
 		  <property name="visible">True</property>
+		  <property name="stock_id">gtk-preferences</property>
 		  <property name="visible_horizontal">True</property>
 		  <property name="visible_vertical">True</property>
-		  <property name="is_important">False</property>
-
-		  <child>
-		    <widget class="GtkEntry" id="txtFlags">
-		      <property name="visible">True</property>
-		      <property name="can_focus">True</property>
-		      <property name="editable">True</property>
-		      <property name="visibility">True</property>
-		      <property name="max_length">0</property>
-		      <property name="text" translatable="yes"></property>
-		      <property name="has_frame">True</property>
-		      <property name="invisible_char">●</property>
-		      <property name="activates_default">False</property>
-		    </widget>
-		  </child>
+		  <property name="is_important">True</property>
 		</widget>
 		<packing>
 		  <property name="expand">False</property>
-		  <property name="homogeneous">False</property>
+		  <property name="homogeneous">True</property>
 		</packing>
 	      </child>
 	    </widget>
