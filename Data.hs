@@ -39,11 +39,11 @@ import Graphics.UI.Gtk hiding (Action, Window, ComboBox, MenuItem, TextView, Too
 
 
 data Data = Data {
+    -- Main Window and friends
       window :: Window
     , txtOut :: TextView
     , txtIn :: TextView
     , txtSelect :: TextEntry
-    , txtFlags :: TextEntry
     , sb :: StatusBar
     
     , tbRun :: ToolButton
@@ -52,6 +52,7 @@ data Data = Data {
     , tbOpen :: ToolButton
     , tbRecent :: ToolButton
     , tbProfile :: ToolButton
+    , tbPref :: ToolButton
 
     , cbCompiler :: ComboBox
 
@@ -59,15 +60,19 @@ data Data = Data {
     , miNew :: MenuItem
     , miQuit :: MenuItem
 
+    -- Preferences Dialog and friends
+    , wndPref :: Window
+    , txtProfCFlags :: TextEntry
+    , txtProfRFlags :: TextEntry
+    , tbClose :: ToolButton
+
     , running :: Var Bool -- is the code executing
     , filename :: Var (Maybe FilePath) -- the main file loaded
     , outputTags :: Var [String]
 
-    -- 
     -- Configuration variables
-    --
-
-    , profFlags :: Var String
+    , profCFlags :: Var String
+    , profRFlags :: Var String
 
     --
     -- Stores the current evaluator and
