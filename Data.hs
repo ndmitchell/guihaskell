@@ -43,6 +43,7 @@ data Data = Data {
     , txtOut :: TextView
     , txtIn :: TextView
     , txtSelect :: TextEntry
+    , txtFlags :: TextEntry
     , sb :: StatusBar
     
     , tbRun :: ToolButton
@@ -61,6 +62,12 @@ data Data = Data {
     , running :: Var Bool -- is the code executing
     , filename :: Var (Maybe FilePath) -- the main file loaded
     , outputTags :: Var [String]
+
+    -- 
+    -- Configuration variables
+    --
+
+    , profFlags :: Var String
 
     --
     -- Stores the current evaluator and
