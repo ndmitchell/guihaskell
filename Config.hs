@@ -38,11 +38,18 @@ confInit = do
     createDirectoryIfMissing True d
 
 --
--- A value constructor that reads and writes using
--- a config file
+-- A value constructor that reads and writes using a
+-- set of config files
 --
 newConfValue :: (Eq a, Show a, Read a) => String -> Event -> IO (Value a)
-newConfValue name ev = do
+newConfValue = newConfValueWithDefault ""
+
+--
+-- Config constructor that takes a default value
+--
+newConfValueWithDefault 
+    :: (Eq a, Show a, Read a) => String -> String-> Event -> IO (Value a)
+newConfValueWithDefault def name ev = do
     cf <- confFile
     exists <- doesFileExist cf
     if exists then do return ()
@@ -62,7 +69,7 @@ newConfValue name ev = do
 	  cf <- confFile
 	  h <- openFile cf ReadMode
 	  val <- read `liftM` catch (hGetLine h)
-		  (\e -> if isEOFError e then return $ show "" else ioError e)
+		  (\e -> if isEOFError e then return $ show def else ioError e)
 	  hClose h
 	  return val
 
