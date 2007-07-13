@@ -46,8 +46,10 @@ main = do
     filename <- newVarName "filename_selection" Nothing
     tags <- newVar []
     -- Configuration variables
-    profCFlags <- newVarWithName "profiler_cflags_conf" (newConfValue "profCFlags")
-    profRFlags <- newVarWithName "profiler_rflags_conf" (newConfValue "profRFlags")
+    profCFlags <- newVarWithName "profiler_cflags_conf" 
+	(newConfValueWithDefault "-prof -auto-all" "profCFlags")
+    profRFlags <- newVarWithName "profiler_rflags_conf" 
+	(newConfValueWithDefault "+RTS -p" "profRFlags")
     -- Evaluator variables
     current <- newVarName "current_evaluator" Hugs
     states <- newVarName "evaluator_states" initialStates
@@ -93,45 +95,57 @@ runFileDialog = do
 --
 setupRelations :: Data -> IO ()
 setupRelations dat@Data
-    { wndPref=wndPref
+    { window=window
     , tbRun=tbRun, tbStop=tbStop, tbRestart=tbRestart
     , tbOpen=tbOpen, tbPref=tbPref, cbCompiler=cbCompiler
     , txtIn=txtIn, txtSelect=txtSelect
     , miQuit=miQuit, miFile=miFile
+    , wndPref=wndPref, txtProfCFlags=txtProfCFlags, txtProfRFlags=txtProfRFlags
     , tbClose=tbClose
     , running=running, filename=filename
     , profCFlags=profCFlags, profRFlags=profRFlags
     , current=current
     } = do
 
+    -- Evaluator events
     tbRun!onClicked 	 += fireCommand dat 
     tbRestart!onClicked  += (startWithFile dat)
     tbOpen!onClicked 	 += (runFileDialog >>= setCurrentFile dat >> startWithFile dat)
-    -- tbStop!onClicked  += stopCommand dat pid
+    {- tbStop!onClicked  += stopCommand dat pid -}
+    onEnterKey txtIn $ fireCommand dat
 
-    -- Hackish. PropLang it later.
+    -- Evaluator selection
+    current =< with1 (cbCompiler!text) (\x -> if null x then Hugs else read x)
+    current += switchEvaluator dat
+
+    -- Filename selection 
+    tie (txtSelect!text) filename (Just . id) (maybe "" id)
+
+    -- Evaluator runtime status 
+    tbRun!enabled =< with1 running not
+    tbStop!enabled =<= running
+    
+    -- Config events
+    -- Hackish. PropLang this later.
     tbPref!onClicked 	 += (widgetShow $ getWindowRaw wndPref)
     tbClose!onClicked	 += (widgetHide $ getWindowRaw wndPref)
+
+    -- Need "-<-" first to populate GUI at startup
+    -- Then tie them
+    txtProfCFlags!text -<- profCFlags
+    txtProfCFlags!text =<>= profCFlags
+    txtProfRFlags!text -<- profRFlags
+    txtProfRFlags!text =<>= profRFlags
    
     -- This approach uses the key event for TextView, but
     -- it's still a bit buggy
     --enterKey <- newVarName "enter_key_pressed?" False
     --enterKey =< with (txtIn!key) ((==) "Return")
     --enterKey += (fireCommand dat >> (txtIn!text -< " "))
-    
-    onEnterKey txtIn $ fireCommand dat
-
-    current =< with1 (cbCompiler!text) (\x -> if null x then Hugs else read x)
-    current += switchEvaluator dat
 
     -- Menu doesn't work yet
     --miQuit!onActivated += exitWith ExitSuccess
-    --miFile!menu =<= foomenu
-   
-    tie (txtSelect!text) filename (Just . id) (maybe "" id)
-    
-    tbRun!enabled =< with1 running not
-    tbStop!enabled =<= running
+    --miFile!menu =<= foomenu  
 
 --
 -- Sends entered text to processes

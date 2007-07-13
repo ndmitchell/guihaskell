@@ -17,7 +17,7 @@
 -----------------------------------------------------------------------------
 
 module Config (
-	confInit, newConfValue
+	confInit, newConfValue, newConfValueWithDefault
 	) where
 
 import Control.Monad
