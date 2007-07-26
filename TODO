@@ -5,3 +5,4 @@ TODO:
 * More documentation in GuiHaskell?
 * Fix the widget collector or drop menus
 * Hyperlinked output
+* Profiler dialog with parsed data
