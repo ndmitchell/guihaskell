@@ -73,6 +73,7 @@ data Data = Data {
     -- Configuration variables
     , profCFlags :: Var String
     , profRFlags :: Var String
+    , executable :: Var FilePath
 
     --
     -- Stores the current evaluator and

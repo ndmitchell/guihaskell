@@ -34,6 +34,7 @@ import Commands
 import Config
 import Data
 import Evaluator
+import Prof
 
 
 main :: IO ()
@@ -45,12 +46,16 @@ main = do
     running <- newVarName "evaluator_on_off" True
     filename <- newVarName "filename_selection" Nothing
     tags <- newVar []
+    
     -- Configuration variables
     profCFlags <- newVarWithName "profiler_cflags_conf" 
 	(newConfValueWithDefault "-prof -auto-all" "profCFlags")
     profRFlags <- newVarWithName "profiler_rflags_conf" 
 	(newConfValueWithDefault "+RTS -p" "profRFlags")
-    -- Evaluator variables
+    executable <- newVarWithName "executable_name"
+	(newConfValueWithDefault "foo" "executable")
+   
+   -- Evaluator variables
     current <- newVarName "current_evaluator" Hugs
     states <- newVarName "evaluator_states" initialStates
 
@@ -65,7 +70,7 @@ main = do
 		  prefWindow
 		  (g "txtProfCFlags") (g "txtProfRFlags") (g "tbClose")
                   running filename tags 
-		  profCFlags profRFlags
+		  profCFlags profRFlags executable
 		  current states
 
     startEvaluator dat Nothing
@@ -98,6 +103,7 @@ setupRelations dat@Data
     { window=window
     , tbRun=tbRun, tbStop=tbStop, tbRestart=tbRestart
     , tbOpen=tbOpen, tbPref=tbPref, cbCompiler=cbCompiler
+    , tbProfile=tbProfile
     , txtIn=txtIn, txtSelect=txtSelect
     , miQuit=miQuit, miFile=miFile
     , wndPref=wndPref, txtProfCFlags=txtProfCFlags, txtProfRFlags=txtProfRFlags
@@ -124,6 +130,9 @@ setupRelations dat@Data
     -- Evaluator runtime status 
     tbRun!enabled =< with1 running not
     tbStop!enabled =<= running
+
+    -- Tools
+    tbProfile!onClicked	 += (runProf dat)
     
     -- Config events
     -- Hackish. PropLang this later.
