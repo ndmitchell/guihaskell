@@ -43,6 +43,7 @@ main = do
     confInit
     window <- getWindow "res/guihaskell.glade" "wndMain"
     prefWindow <- getWindow "res/prefdialog.glade" "wndPref"
+    aboutWindow <- getWindow "res/about.glade" "wndAbout"
     running <- newVarName "evaluator_on_off" True
     filename <- newVarName "filename_selection" Nothing
     tags <- newVar []
@@ -66,9 +67,12 @@ main = do
                   (f "tbRun")  (f "tbStop") (f "tbRestart")
 		  (f "tbOpen") (f "tbRecent") (f "tbProfile") (f "tbPref")
 		  (f "cbCompiler") 
-		  (f "miFile") (f "miNew") (f "miQuit")
+		  (f "miFile") (f "miOpen") (f "miQuit") 
+		  (f "miEdit") (f "miCut") (f "miCopy") (f "miPaste")
+		  (f "midHelp") (f "miAbout")
 		  prefWindow
 		  (g "txtProfCFlags") (g "txtProfRFlags") (g "tbClose")
+		  aboutWindow
                   running filename tags 
 		  profCFlags profRFlags executable
 		  current states
@@ -106,8 +110,10 @@ setupRelations dat@Data
     , tbProfile=tbProfile
     , txtIn=txtIn, txtSelect=txtSelect
     , miQuit=miQuit, miFile=miFile
+    , miHelp=miHelp, miAbout=miAbout
     , wndPref=wndPref, txtProfCFlags=txtProfCFlags, txtProfRFlags=txtProfRFlags
     , tbClose=tbClose
+    , wndAbout=wndAbout
     , running=running, filename=filename
     , profCFlags=profCFlags, profRFlags=profRFlags
     , current=current
@@ -153,7 +159,8 @@ setupRelations dat@Data
     --enterKey += (fireCommand dat >> (txtIn!text -< " "))
 
     -- Menus
-    miQuit!onActivated += mainQuit
+    miQuit!onActivated  += mainQuit
+    miAbout!onActivated += (showWindow wndAbout)
     
     return ()
 

@@ -57,14 +57,23 @@ data Data = Data {
     , cbCompiler :: ComboBox
 
     , miFile :: MenuItem
-    , miNew :: MenuItem
+    , miOpen :: MenuItem
     , miQuit :: MenuItem
+    , miEdit :: MenuItem
+    , miCut :: MenuItem
+    , miCopy :: MenuItem
+    , miPaste :: MenuItem
+    , miHelp :: MenuItem
+    , miAbout :: MenuItem
 
     -- Preferences Dialog and friends
     , wndPref :: Window
     , txtProfCFlags :: TextEntry
     , txtProfRFlags :: TextEntry
     , tbClose :: ToolButton
+
+    -- About dialog
+    , wndAbout :: Window
 
     , running :: Var Bool -- is the code executing
     , filename :: Var (Maybe FilePath) -- the main file loaded
