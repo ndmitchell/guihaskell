@@ -152,9 +152,10 @@ setupRelations dat@Data
     --enterKey =< with (txtIn!key) ((==) "Return")
     --enterKey += (fireCommand dat >> (txtIn!text -< " "))
 
-    -- Menu doesn't work yet
-    --miQuit!onActivated += exitWith ExitSuccess
-    --miFile!menu =<= foomenu  
+    -- Menus
+    miQuit!onActivated += mainQuit
+    
+    return ()
 
 --
 -- Sends entered text to processes
