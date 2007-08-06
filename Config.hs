@@ -17,7 +17,7 @@
 -----------------------------------------------------------------------------
 
 module Config (
-	confInit, newConfValue, newConfValueWithDefault
+	confInit, newConfValueWithDefault
 	) where
 
 import Control.Monad
@@ -41,14 +41,14 @@ confInit = do
 -- A value constructor that reads and writes using a
 -- set of config files
 --
-newConfValue :: (Eq a, Show a, Read a) => String -> Event -> IO (Value a)
-newConfValue = newConfValueWithDefault ""
+--newConfValue :: (Eq a, Show a, Read a) => String -> Event -> IO (Value a)
+--newConfValue = newConfValueWithDefault ""
 
 --
 -- Config constructor that takes a default value
 --
 newConfValueWithDefault 
-    :: (Eq a, Show a, Read a) => String -> String-> Event -> IO (Value a)
+    :: (Eq a, Show a, Read a) => a -> String -> Event -> IO (Value a)
 newConfValueWithDefault def name ev = do
     cf <- confFile
     exists <- doesFileExist cf
@@ -68,8 +68,10 @@ newConfValueWithDefault def name ev = do
       getter = do
 	  cf <- confFile
 	  h <- openFile cf ReadMode
-	  val <- read `liftM` catch (hGetLine h)
-		  (\e -> if isEOFError e then return $ show def else ioError e)
+	  val <- catch (readIO =<< hGetLine h)
+		  (\e -> if isEOFError e 
+		           then return def 
+			   else ioError e)
 	  hClose h
 	  return val
 
