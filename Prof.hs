@@ -31,6 +31,7 @@ import PropLang.Variable
 
 import Data
 import Evaluator
+import Util
 
 data Profile = Profile
                { title :: String
@@ -60,18 +61,22 @@ runProf dat = do
     src <- getVar $ filename dat
     case src of
       Just x -> do
-	(inp, out, err, pid) <- runExternal "ghc" $ 
-	    Just $ words cF ++ ["-o", o] ++ [x]
-	waitForProcess pid
-	let exe = if inCurrentDir o then "." </> o else o 
-	(_,_,_,pid) <- runExternal exe $ Just $ words rF
-	waitForProcess pid
-	res <- runProfileParser $ o ++ ".prof"
-	case res of
-	  Left s  -> appendText dat $ show s ++ "\n"
-	  Right x -> runParseDialog x
+	exist <- doesFileExist x
+	if not exist
+	  then errorMessage dat "Selected file does not exist."
+	  else do
+	    (inp, out, err, pid) <- runExternal "ghc" $ 
+	        Just $ words cF ++ ["-o", o] ++ [x]
+	    waitForProcess pid
+	    let exe = if inCurrentDir o then "." </> o else o 
+	    (_,_,_,pid) <- runExternal exe $ Just $ words rF
+	    waitForProcess pid
+	    res <- runProfileParser $ o ++ ".prof"
+	    case res of
+	      Left s  -> errorMessage dat s 
+	      Right x -> runParseDialog x
       Nothing -> do
-	appendText dat "Profiler: No file selected\n"
+	errorMessage dat "No file selected for profiling."
 
     where
       inCurrentDir = null . fst . splitFileName
@@ -113,7 +118,7 @@ runProfileParser :: FilePath -> IO (Either String (Profile, [ProfileLine]))
 runProfileParser file = do
   b <- doesFileExist file
   if not b 
-    then return $ Left "Error: No .prof file found"
+    then return $ Left "No .prof file was found. Check your profile flags."
     else do
       contents <- readFile file 
       let (title:_:flags:_:time:alloc:rest) = lines contents
