@@ -135,7 +135,8 @@ setupRelations dat@Data
 
     -- Filename selection 
     injectWith (txtSelect!text) filename (maybe "" id)
-    tie (txtSelect!text) filename (Just . id) (maybe "" id)
+    tie (txtSelect!text) filename 
+	(\t -> if null t then Nothing else Just t) (maybe "" id)
 
     -- Evaluator runtime status 
     tbRun!enabled =< with1 running not
