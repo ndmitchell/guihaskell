@@ -55,7 +55,7 @@ main = do
     profRFlags <- newVarWithName "profiler_rflags_conf" 
 	(newConfValueWithDefault "+RTS -p" "profRFlags")
     executable <- newVarWithName "executable_name"
-	(newConfValueWithDefault "foo" "executable")
+	(newConfValueWithDefault "" "executable")
    
    -- Evaluator variables
     current <- newVarName "current_evaluator" Hugs
@@ -72,7 +72,8 @@ main = do
 		  (f "miEdit") (f "miCut") (f "miCopy") (f "miPaste")
 		  (f "midHelp") (f "miAbout")
 		  prefWindow
-		  (g "txtProfCFlags") (g "txtProfRFlags") (g "tbClose")
+		  (g "txtExecutable") (g "txtProfCFlags") (g "txtProfRFlags")
+		  (g "tbClose")
 		  aboutWindow
                   running filename tags 
 		  profCFlags profRFlags executable
@@ -112,11 +113,12 @@ setupRelations dat@Data
     , txtIn=txtIn, txtSelect=txtSelect
     , miQuit=miQuit, miFile=miFile
     , miHelp=miHelp, miAbout=miAbout
-    , wndPref=wndPref, txtProfCFlags=txtProfCFlags, txtProfRFlags=txtProfRFlags
+    , wndPref=wndPref, txtExecutable=txtExecutable
+    , txtProfCFlags=txtProfCFlags, txtProfRFlags=txtProfRFlags
     , tbClose=tbClose
     , wndAbout=wndAbout
     , running=running, filename=filename
-    , profCFlags=profCFlags, profRFlags=profRFlags
+    , executable=executable, profCFlags=profCFlags, profRFlags=profRFlags
     , current=current
     } = do
 
@@ -149,6 +151,8 @@ setupRelations dat@Data
 
     -- Need "-<-" first to populate GUI at startup
     -- Then tie them
+    txtExecutable!text -<- executable
+    txtExecutable!text =<>= executable
     txtProfCFlags!text -<- profCFlags
     txtProfCFlags!text =<>= profCFlags
     txtProfRFlags!text -<- profRFlags

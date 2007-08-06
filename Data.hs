@@ -68,6 +68,7 @@ data Data = Data {
 
     -- Preferences Dialog and friends
     , wndPref :: Window
+    , txtExecutable :: TextEntry
     , txtProfCFlags :: TextEntry
     , txtProfRFlags :: TextEntry
     , tbClose :: ToolButton
