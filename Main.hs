@@ -29,13 +29,10 @@ import System.Exit
 import System.Posix.Signals
 import System.Process
 
-
-import Commands
 import Config
 import Data
 import Evaluator
 import Prof
-
 
 main :: IO ()
 main = do
@@ -55,7 +52,7 @@ main = do
     profRFlags <- newVarWithName "profiler_rflags_conf" 
 	(newConfValueWithDefault "+RTS -p" "profRFlags")
     executable <- newVarWithName "executable_name"
-	(newConfValueWithDefault "" "executable")
+	(newConfValueWithDefault "foobar.exe" "executable")
    
    -- Evaluator variables
     current <- newVarName "current_evaluator" Hugs
