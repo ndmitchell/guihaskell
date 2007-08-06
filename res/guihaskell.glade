@@ -104,18 +104,37 @@
               </widget>
             </child>
             <child>
+              <widget class="GtkMenuItem" id="miTools">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">_Tools</property>
+                <property name="use_underline">True</property>
+                <child>
+                  <widget class="GtkMenu" id="menuitem4_menu">
+                    <child>
+                      <widget class="GtkImageMenuItem" id="miPref">
+                        <property name="visible">True</property>
+                        <property name="label">gtk-preferences</property>
+                        <property name="use_underline">True</property>
+                        <property name="use_stock">True</property>
+                      </widget>
+                    </child>
+                  </widget>
+                </child>
+              </widget>
+            </child>
+            <child>
               <widget class="GtkMenuItem" id="miHelp">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">_Help</property>
                 <property name="use_underline">True</property>
                 <child>
-                  <widget class="GtkMenu" id="menuitem4_menu">
+                  <widget class="GtkMenu" id="menuitem4_menu2">
                     <child>
-                      <widget class="GtkMenuItem" id="miAbout">
+                      <widget class="GtkImageMenuItem" id="miAbout">
                         <property name="visible">True</property>
-                        <property name="label" translatable="yes">_About</property>
+                        <property name="label">gtk-about</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_about1_activate"/>
+                        <property name="use_stock">True</property>
                       </widget>
                     </child>
                   </widget>
@@ -413,18 +432,7 @@ GHC</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="editable">False</property>
-                    <property name="overwrite">False</property>
-                    <property name="accepts_tab">True</property>
-                    <property name="justification">GTK_JUSTIFY_LEFT</property>
                     <property name="wrap_mode">GTK_WRAP_CHAR</property>
-                    <property name="cursor_visible">True</property>
-                    <property name="pixels_above_lines">0</property>
-                    <property name="pixels_below_lines">0</property>
-                    <property name="pixels_inside_wrap">0</property>
-                    <property name="left_margin">0</property>
-                    <property name="right_margin">0</property>
-                    <property name="indent">0</property>
-                    <property name="text" translatable="yes"></property>
                   </widget>
                 </child>
               </widget>
@@ -477,9 +485,5 @@ GHC</property>
         </child>
       </widget>
     </child>
-  </widget>
-  <widget class="GtkMenu" id="menu1">
-    <property name="visible">True</property>
-    <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
   </widget>
 </glade-interface>

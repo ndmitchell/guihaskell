@@ -67,6 +67,7 @@ main = do
 		  (f "cbCompiler") 
 		  (f "miFile") (f "miOpen") (f "miQuit") 
 		  (f "miEdit") (f "miCut") (f "miCopy") (f "miPaste")
+		  (f "miTools") (f "miPref")
 		  (f "midHelp") (f "miAbout")
 		  prefWindow
 		  (g "txtExecutable") (g "txtProfCFlags") (g "txtProfRFlags")
@@ -109,6 +110,7 @@ setupRelations dat@Data
     , tbProfile=tbProfile
     , txtIn=txtIn, txtSelect=txtSelect
     , miQuit=miQuit, miFile=miFile
+    , miPref=miPref
     , miHelp=miHelp, miAbout=miAbout
     , wndPref=wndPref, txtExecutable=txtExecutable
     , txtProfCFlags=txtProfCFlags, txtProfRFlags=txtProfRFlags
@@ -144,6 +146,7 @@ setupRelations dat@Data
     
     -- Config events
     tbPref!onClicked 	 += (showWindow wndPref)
+    miPref!onActivated 	 += (showWindow wndPref)
     -- Hack
     tbClose!onClicked	 += (widgetHide $ getWindowRaw wndPref)
 
