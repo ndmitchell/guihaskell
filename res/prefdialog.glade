@@ -72,7 +72,7 @@
 		  </child>
 
 		  <child>
-		    <widget class="GtkEntry" id="txtExec">
+		    <widget class="GtkEntry" id="txtExecutable">
 		      <property name="visible">True</property>
 		      <property name="can_focus">True</property>
 		      <property name="editable">True</property>
