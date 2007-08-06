@@ -45,7 +45,8 @@ main = do
     prefWindow <- getWindow "res/prefdialog.glade" "wndPref"
     aboutWindow <- getWindow "res/about.glade" "wndAbout"
     running <- newVarName "evaluator_on_off" True
-    filename <- newVarName "filename_selection" Nothing
+    filename <- newVarWithName "selected_filename"
+        (newConfValueWithDefault Nothing "selected_filename")
     tags <- newVar []
     
     -- Configuration variables
@@ -131,6 +132,7 @@ setupRelations dat@Data
     current += switchEvaluator dat
 
     -- Filename selection 
+    injectWith (txtSelect!text) filename (maybe "" id)
     tie (txtSelect!text) filename (Just . id) (maybe "" id)
 
     -- Evaluator runtime status 
