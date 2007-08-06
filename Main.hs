@@ -177,13 +177,9 @@ fireCommand dat@Data{txtOut=txtOut, txtIn=txtIn} = do
 	Just (inp,_) -> do
 	    s <- getVar (txtIn!text)
 	    running dat -< True
-	    left <- checkCommands dat s
-	    case left of 
-		Nothing -> return ()
-		Just x  -> do
-		    appendText dat (s ++ "\n")
-		    forkIO (hPutStrLn inp x)
-		    return ()
+	    appendText dat (s ++ "\n")
+	    forkIO (hPutStrLn inp s)
+	    return ()
 
 {-
 stopCommand :: Data ->  IO ()
