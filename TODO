@@ -1,8 +1,8 @@
 TODO:
 
-* Make sure GuiHaskell cleans up after itself, e.g. terminating interpreters
-* Improve GHC support or drop it (if GHCi suffices)
-* More documentation in GuiHaskell?
-* Fix the widget collector or drop menus
-* Hyperlinked output
-* Profiler dialog with parsed data
+* Make sure GuiHaskell cleans up after itself. e.g. terminating interpreters
+* Improve GHC support or drop it (if GHCi suffices).
+* More documentation.
+* Hyperlinked output.
+* PropLang ComboBox needs some love.
+* Multiple windows/dialogs in PropLang is awkward.
