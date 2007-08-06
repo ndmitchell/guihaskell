@@ -13,18 +13,41 @@
 module Prof where
 
 import Control.Concurrent
+import Data.Char
+import Data.Tree
 import System.Directory (doesFileExist)
 import System.FilePath
 import System.IO
 import System.Process
 import Text.ParserCombinators.Parsec
+import Text.ParserCombinators.Parsec.Token
+import Text.ParserCombinators.Parsec.Language (haskellDef)
 
 import Graphics.UI.Gtk
+import Graphics.UI.Gtk.ModelView.CellLayout
+import qualified Graphics.UI.Gtk.ModelView as MView
 
 import PropLang.Variable
 
 import Data
 import Evaluator
+
+data Profile = Profile
+               { title :: String
+	       , flags :: String
+	       , time :: String
+	       , alloc :: String
+	       }
+
+data ProfileLine = ProfileLine 
+		   { costCentre :: String
+		   , moduleName :: String
+		   , entries :: Integer
+		   , indvTime :: Double
+		   , indvAlloc :: Double
+		   , inhTime :: Double
+		   , inhAlloc :: Double 
+		   }
 
 --
 -- Run the profiler
@@ -43,29 +66,105 @@ runProf dat = do
 	let exe = if inCurrentDir o then "." </> o else o 
 	(_,_,_,pid) <- runExternal exe $ Just $ words rF
 	waitForProcess pid
-	parseProfile dat $ o ++ ".prof"
-	-- Start a new dialog here with profiling data
+	res <- runProfileParser $ o ++ ".prof"
+	case res of
+	  Left s  -> appendText dat $ show s ++ "\n"
+	  Right x -> runParseDialog x
       Nothing -> do
 	appendText dat "Profiler: No file selected\n"
 
     where
       inCurrentDir = null . fst . splitFileName
 
---
--- Parse the profiling output and open up a new dialog
--- with the parsed data
---
-parseProfile dat file = do
+-- Parse a line
+parseProfileLine :: Parser ProfileLine
+parseProfileLine = do 
+    let lexer = makeTokenParser haskellDef
+    spaces
+    cc <- notSpaces     ; spaces
+    mn <- notSpaces     ; spaces
+    no <- natural lexer ; spaces
+    en <- natural lexer ; spaces
+    it <- float lexer   ; spaces
+    ia <- float lexer   ; spaces
+    iht <- float lexer  ; spaces
+    iha <- float lexer
+    return $ ProfileLine cc mn en it ia iht iha
+
+    where
+	notSpaces = many $ satisfy $ not . isSpace
+
+-- Parse a float
+parseFloat :: Parser Double
+parseFloat = do
+    int <- many digit
+    p <- char '.'
+    frac <- many digit
+    return $ read $ int ++ [p] ++ frac
+
+-- Parse the profiling output
+parseProfile :: Parser [ProfileLine]
+parseProfile = do
+    ls <- many1 parseProfileLine
+    return ls
+
+-- Run the profile parsers
+runProfileParser :: FilePath -> IO (Either String (Profile, [ProfileLine]))
+runProfileParser file = do
   b <- doesFileExist file
-  if b 
-    then appendText dat "\n" >> readFile file >>= appendText dat
-    else appendText dat "Profiler: .prof file not found\n"
-  {-
-  d <- dialogNew
-  dialogAddButton d "gtk-close" ResponseClose
-  up <- dialogGetUpper d
-  l <- labelNew $ Just "Foo"
-  boxPackStart up l PackNatural 0
-  dialogRun d
-  return ()
-  -}
+  if not b 
+    then return $ Left "Error: No .prof file found"
+    else do
+      contents <- readFile file 
+      let (title:_:flags:_:time:alloc:rest) = lines contents
+	  prof = Profile (dropWhile isSpace title) (dropWhile isSpace flags)
+	                 (dropWhile isSpace time) (dropWhile isSpace alloc)
+      case parse parseProfile "" (unlines $ drop 11 $ rest) of
+	Left x  -> return $ Left $ show x
+	Right x -> return $ Right (prof, x)
+
+-- Set up and display the profiling dialog
+runParseDialog :: (Profile, [ProfileLine]) -> IO ()
+runParseDialog (p, ls) = do
+    d <- dialogNew
+    dialogAddButton d "gtk-close" ResponseClose
+    up <- dialogGetUpper d
+    titleLabel <- labelNew $ Just $ title p
+    flagLabel  <- labelNew $ Just $ flags p
+    timeLabel  <- labelNew $ Just $ time p
+    allocLabel <- labelNew $ Just $ alloc p
+    
+    view <- MView.treeViewNew
+    store <- MView.treeStoreNew []
+    MView.treeViewSetModel view store
+
+    -- Thanks to the Gtk2hs folks for this
+    let createTextColumn name field = do
+	  column <- MView.treeViewColumnNew
+	  MView.treeViewAppendColumn view column
+	  MView.treeViewColumnSetTitle column name
+	  cell <- cellRendererTextNew
+	  MView.treeViewColumnPackStart column cell True
+	  cellLayoutSetAttributes column cell store
+	    (\record -> [MView.cellText := field record])
+	  
+    createTextColumn "Cost Centre"       costCentre
+    createTextColumn "Module"            moduleName
+    createTextColumn "Entries"           (show . entries)
+    createTextColumn "Individual %time"  (show . indvTime)
+    createTextColumn "Individual %alloc" (show . indvAlloc)
+    createTextColumn "Inherited %time"   (show . inhTime)
+    createTextColumn "Inherited %alloc"  (show . inhAlloc)
+
+    mapM_ (MView.treeStoreInsert store [] 0) ls
+
+    boxPackStart up titleLabel PackNatural 0
+    boxPackStart up flagLabel PackNatural 0
+    boxPackStart up timeLabel PackNatural 0
+    boxPackStart up allocLabel PackNatural 0
+    boxPackStart up view PackRepel 0
+    
+    widgetShowAll d
+    dialogRun d
+    widgetHide d
+    return ()
