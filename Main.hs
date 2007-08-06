@@ -143,8 +143,8 @@ setupRelations dat@Data
     tbProfile!onClicked	 += (runProf dat)
     
     -- Config events
-    -- Hackish. PropLang this later.
-    tbPref!onClicked 	 += (widgetShow $ getWindowRaw wndPref)
+    tbPref!onClicked 	 += (showWindow wndPref)
+    -- Hack
     tbClose!onClicked	 += (widgetHide $ getWindowRaw wndPref)
 
     -- Need "-<-" first to populate GUI at startup

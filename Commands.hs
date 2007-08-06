@@ -18,6 +18,8 @@ module Commands (
 	checkCommands
 	) where
 
+--import PropLang.Variable
+
 import Data
 import Evaluator
 
@@ -89,8 +91,8 @@ runHoogle _ args = do
 	putStrLn $ "Hoogle " ++ concat args
 
 runProf :: Command
-runProf _ args = do
-	putStrLn $ "Prof " ++ concat args
+runProf dat args = do
+	putStrLn "Running profiler..."
 
 --
 -- Analagous to :load
