@@ -99,14 +99,6 @@ parseProfileLine = do
     where
 	notSpaces = many $ satisfy $ not . isSpace
 
--- Parse a float
-parseFloat :: Parser Double
-parseFloat = do
-    int <- many digit
-    p <- char '.'
-    frac <- many digit
-    return $ read $ int ++ [p] ++ frac
-
 -- Parse the profiling output
 parseProfile :: Parser [ProfileLine]
 parseProfile = do
@@ -125,7 +117,8 @@ runProfileParser file = do
 	  prof = Profile (dropWhile isSpace title) (dropWhile isSpace flags)
 	                 (dropWhile isSpace time) (dropWhile isSpace alloc)
       case parse parseProfile "" (unlines $ drop 11 $ rest) of
-	Left x  -> return $ Left $ show x
+	Left x  -> return $ Left $ "Parse error: " ++ show x ++ "\n\n" ++
+				    "This is likely a bug. Please file a report."
 	Right x -> return $ Right (prof, x)
 
 -- Set up and display the profiling dialog
