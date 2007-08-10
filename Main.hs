@@ -215,10 +215,11 @@ stopCommand dat = do
     case handles of
 	Nothing -> errorMessage dat "No compiler running to stop."
 	Just (Handles inp pid oid eid) -> do
-	    terminateProcess pid
-	    waitForProcess pid
 	    killThread oid
 	    killThread eid
+	    terminateProcess pid
+	    waitForProcess pid
+	    setHandles dat Nothing
 	    startEvaluator dat Nothing
 
 {-
