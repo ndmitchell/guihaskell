@@ -57,7 +57,7 @@ main = do
    
    -- Evaluator variables
     current <- newVarName "current_evaluator" Hugs
-    states <- newVarName "evaluator_states" initialStates
+    states <- newVarName "evaluator_states" empty
 
     let f x = getCtrl window x
 	g x = getCtrl prefWindow x
@@ -180,7 +180,7 @@ fireCommand dat@Data{txtOut=txtOut, txtIn=txtIn} = do
     handles <- getHandles dat
     case handles of
 	Nothing -> errorMessage dat "Can't send command; compiler not running."
-	Just (inp,_) -> do
+	Just (Handles inp _ _ _) -> do
 	    s <- getVar (txtIn!text)
 	    running dat -< True
 	    appendText dat (s ++ "\n")
@@ -195,9 +195,12 @@ stopCommand dat = do
     handles <- getHandles dat
     case handles of
 	Nothing -> errorMessage dat "No compiler running to stop."
-	Just (inp, Left pid) -> do
+	Just (Handles inp pid oid eid) -> do
 	    terminateProcess pid
-	    startEvaluator
+	    waitForProcess pid
+	    killThread oid
+	    killThread eid
+	    startEvaluator dat Nothing
 
 {-
 stopCommand :: Data ->  IO ()

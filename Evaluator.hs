@@ -38,16 +38,14 @@ prompt = "\x1B[0;32m%s>\x1B[0m \x1B[50m"
 --
 switchEvaluator :: Data -> IO ()
 switchEvaluator dat = do
-    hndls <- getHandles dat
-    case hndls of
+    hndl <- getHandles dat
+    case hndl of
 	Nothing -> do
 	    startEvaluator dat Nothing
-	Just (inp,hndl) -> do
+	Just (Handles inp pid _ _) -> do
 	    appendText dat "\nSwitching...\n"
 	    putStrLn "Switching evaluators"
-	    case hndl of
-	      Left _     -> hPutStrLn inp $ ""
-	      Right file -> do removeFile file; putStrLn "Removed temp buffer"
+	    hPutStrLn inp $ ""
 
 --
 -- Start an evaluator
@@ -60,32 +58,20 @@ startEvaluator dat args = do
 	    Nothing -> do
 		errorMessage dat $ show name ++ " not found, please install."
 	    Just x -> do
-		case args of
-		    Just _ -> do
-			runCompiler x
-		    Nothing -> do
-			case name of
-			    Hugs -> do
-				runCompiler x
-			    GHCi -> do
-				runCompiler x
-			    GHC -> do
-				(file, hndl) <- openTempFile "/tmp" "guihaskell.hs"
-				hSetBuffering hndl NoBuffering
-				setHandles dat $ Just (hndl,Right file)
+		runCompiler x
     where
 	runCompiler path = do
 	    name <- getVar $ current dat
-	    s <- getCurrentState dat
 	    (inp,out,err,pid) <- runExternal path args
 
 	    appendText dat $ "\nLoading " ++ show name ++ "...\n"
-	    hPutStrLn inp $ (promptCmd s) prompt
+	    hPutStrLn inp $ promptCmd name prompt
 	    hPutStrLn inp $ "putChar '\\01'"
 
-	    forkIO (readOut out)
-	    forkIO (readErr err)
-	    setHandles dat $ Just (inp,Left pid)
+	    oid <- forkIO (readOut out)
+	    eid <- forkIO (readErr err)
+
+	    setHandles dat (Just $ Handles inp pid oid eid)
 
         readOut hndl = do
             c <- hGetContents hndl
@@ -130,14 +116,11 @@ stopEvaluator dat = do
     hndls <- getHandles dat
     case hndls of
 	Nothing -> return ()
-	Just (inp,Left pid) -> do
+	Just (Handles inp pid _ _) -> do
 	    setHandles dat Nothing
 	    hPutStrLn inp "\n:quit\n"
 	    waitForProcess pid
 	    return ()
-	Just (_,Right file) -> do
-	    setHandles dat Nothing
-	    removeFile file
 
 --
 -- Run a compiler with a file
@@ -164,5 +147,5 @@ getHugsPath = do
             let ans = map snd $ filter fst $ zip res guesses
             return $ if null ans then Nothing else Just (head ans)
 
-getOtherPath :: Name -> IO (Maybe FilePath)
+getOtherPath :: Evaluator -> IO (Maybe FilePath)
 getOtherPath = findExecutable . map toLower . show

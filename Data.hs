@@ -17,9 +17,10 @@
 -----------------------------------------------------------------------------
 
 module Data (
-	Data (..), Evaluator(..), Name(..),
-	initialStates, getCurrentState, getHandles, setHandles, setCurrentFile,
-	setupFonts, appendText, appendRed, applyEscape
+	Data(..), Evaluator(..), Handles(..),
+	empty, getHandles, setHandles, setCurrentFile,
+	setupFonts, appendText, appendRed, applyEscape,
+	promptCmd
 	) where
 
 import PropLang.Gtk
@@ -28,6 +29,7 @@ import PropLang.Variable
 import Data.Map (Map)
 import qualified Data.Map as M
 
+import Control.Concurrent (ThreadId)
 import System.IO (Handle)
 import System.Process (ProcessHandle)
 import Text.EscapeCodes
@@ -94,67 +96,59 @@ data Data = Data {
     -- When a new evaluator is chosen, the
     -- current evaluator is swapped into the list
     -- and the new evalutor is put into current
-    , current :: Var Name
-    , states :: Var (Map Name Evaluator)
+    , current :: Var Evaluator
+    , states :: Var (Map Evaluator Handles)
     }
 
 --
 -- A data structure for storing the compiler-specific
 -- details
 --
-data Evaluator = Evaluator {
-    handles :: Maybe EHandle,
-    promptCmd :: String -> String
+data Handles = Handles {
+    handle :: Handle,
+    pid :: ProcessHandle,
+    outId :: ThreadId,
+    errId :: ThreadId
     }
 
 -- hack!
-instance Eq Evaluator where
+-- shouldn't matter as long as you use Var like an IORef
+-- maybe ProcessHandle should instantiate Eq
+instance Eq Handles where
     _ == _ = True
 
-type EHandle = (Handle, Either ProcessHandle FilePath)
+data Evaluator = Hugs | GHCi deriving (Show, Read, Eq, Ord)
 
-data Name = Hugs | GHC | GHCi deriving (Show, Read, Eq, Ord)
 
---
--- Initialize the evalutor details and states
---
-initialStates :: Map Name Evaluator
-initialStates = 
-	M.fromList [
-	    (Hugs, Evaluator { handles = Nothing, promptCmd = \x -> ":set -p\"" ++ x ++ "\"" }),
-	    (GHC, Evaluator { handles = Nothing, promptCmd = \_ -> "" }),
-	    (GHCi, Evaluator { handles = Nothing, promptCmd = \x -> ":set prompt " ++ x })
-	]
+-- So Main doesn't need to import Map
+empty :: Map Evaluator Handles
+empty = M.empty
 
---
--- Fetch the current evaluator state
---
-getCurrentState :: Data -> IO Evaluator
-getCurrentState dat = do
-    c <- getVar $ current dat
-    s <- getVar $ states dat
-    M.lookup c s
+-- Probably belongs in Evaluator.hs
+promptCmd :: Evaluator -> String -> String
+promptCmd Hugs xs = ":set -p\"" ++ xs ++ "\""
+promptCmd GHCi xs = ":set prompt " ++ xs
 
---
--- Get the handles for the current evaluator
---
-getHandles :: Data -> IO (Maybe EHandle)
+-- Get the current evaluator
+getHandles :: Data -> IO (Maybe Handles)
 getHandles dat = do
-    s <- getCurrentState dat
-    return $ handles s
-
---
--- Set the handles for the current evaluator
---
-setHandles :: Data -> Maybe EHandle -> IO ()
-setHandles dat h = do
     c <- getVar $ current dat
     s <- getVar $ states dat
-    states dat -< M.adjust (\x -> x { handles = h }) c s
+    return $ M.lookup c s
 
---
+-- Set the handles for the current evaluator
+setHandles :: Data -> Maybe Handles -> IO ()
+setHandles dat hndls = do
+    c <- getVar $ current dat
+    s <- getVar $ states dat
+    case hndls of
+	Nothing -> states dat -< M.delete c s
+	Just x  ->
+	    case M.lookup c s of
+		Nothing -> states dat -< M.insert c x s
+		Just x  -> states dat -< M.adjust (\_ -> x) c s
+
 -- Set the currently open file
---
 setCurrentFile :: Data -> Maybe FilePath -> IO ()
 setCurrentFile dat path = do
     filename dat -< path
