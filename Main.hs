@@ -22,7 +22,7 @@ import System.IO
 
 import Control.Concurrent
 
-import Graphics.UI.Gtk hiding (Action, Window, ComboBox, MenuItem, TextView, ToolButton, Event, onClicked, onChanged)
+import Graphics.UI.Gtk hiding (Action, Window, ComboBox, MenuItem, TextView, ToolButton, FontButton, Event, onClicked, onChanged)
 import Graphics.UI.Gtk.Glade
 
 import System.Exit
@@ -65,7 +65,7 @@ main = do
                   (f "txtOut") (f "txtIn") (f "txtSelect") (f "sb")
                   (f "tbRun")  (f "tbStop") (f "tbRestart")
 		  (f "tbOpen") (f "tbRecent") (f "tbProfile") (f "tbPref")
-		  (f "cbCompiler") 
+		  (f "cbCompiler") (f "fbFont")
 		  (f "miFile") (f "miOpen") (f "miQuit") 
 		  (f "miEdit") (f "miCut") (f "miCopy") (f "miPaste")
 		  (f "miTools") (f "miPref")
@@ -105,21 +105,37 @@ runFileDialog = do
 --
 setupRelations :: Data -> IO ()
 setupRelations dat@Data
-    { window=window
-    , tbRun=tbRun, tbStop=tbStop, tbRestart=tbRestart
-    , tbOpen=tbOpen, tbPref=tbPref, cbCompiler=cbCompiler
-    , tbProfile=tbProfile
-    , txtIn=txtIn, txtSelect=txtSelect
-    , miQuit=miQuit, miFile=miFile
-    , miPref=miPref
-    , miHelp=miHelp, miAbout=miAbout
-    , wndPref=wndPref, txtExecutable=txtExecutable
-    , txtProfCFlags=txtProfCFlags, txtProfRFlags=txtProfRFlags
-    , tbClose=tbClose
-    , wndAbout=wndAbout
-    , running=running, filename=filename
-    , executable=executable, profCFlags=profCFlags, profRFlags=profRFlags
-    , current=current
+    -- This is ugly, but at least it's readable
+    { window         =window
+    , tbRun          =tbRun
+    , tbStop         =tbStop
+    , tbRestart      =tbRestart
+    , tbOpen         =tbOpen
+    , tbPref         =tbPref
+    , tbProfile      =tbProfile
+    , cbCompiler     =cbCompiler
+    , fbFont         =fbFont
+    , txtIn          =txtIn 
+    , txtSelect      =txtSelect
+    , miFile         =miFile
+    , miOpen         =miOpen
+    , miQuit         =miQuit
+    , miProfile      =miProfile
+    , miPref         =miPref
+    , miHelp         =miHelp
+    , miAbout        =miAbout
+    , wndPref        =wndPref
+    , txtExecutable  =txtExecutable
+    , txtProfCFlags  =txtProfCFlags
+    , txtProfRFlags  =txtProfRFlags
+    , tbClose        =tbClose
+    , wndAbout       =wndAbout
+    , running        =running
+    , filename       =filename
+    , executable     =executable
+    , profCFlags     =profCFlags
+    , profRFlags     =profRFlags
+    , current        =current
     } = do
 
     -- Evaluator events
@@ -150,6 +166,7 @@ setupRelations dat@Data
     miPref!onActivated 	 += (showWindow wndPref)
     -- Hack
     tbClose!onClicked	 += (widgetHide $ getWindowRaw wndPref)
+    fbFont!text          += setupFonts dat
 
     -- Need "-<-" first to populate GUI at startup
     -- Then tie them

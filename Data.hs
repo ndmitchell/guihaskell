@@ -37,7 +37,7 @@ import Text.EscapeCodes
 import Control.Monad
 import Numeric
 
-import Graphics.UI.Gtk hiding (Action, Window, ComboBox, MenuItem, TextView, ToolButton, Event, onClicked, onChanged)
+import Graphics.UI.Gtk hiding (Action, Window, ComboBox, MenuItem, TextView, ToolButton, FontButton, Event, onClicked, onChanged)
 
 
 data Data = Data {
@@ -57,6 +57,8 @@ data Data = Data {
     , tbPref :: ToolButton
 
     , cbCompiler :: ComboBox
+
+    , fbFont :: FontButton
 
     , miFile :: MenuItem
     , miOpen :: MenuItem
@@ -157,14 +159,14 @@ setCurrentFile dat path = do
 --
 --
 setupFonts :: Data -> IO ()
-setupFonts Data{txtOut=out,txtIn=inp} = do
+setupFonts dat@Data{txtOut=out,txtIn=inp} = do
     buf <- textviewBuffer out
     tags <- textBufferGetTagTable buf
+    font <- getVar $ (fbFont dat)!text
     
     mapM (addTags tags) [minBound..maxBound]
 
-    fdesc <- fontDescriptionNew
-    fontDescriptionSetFamily fdesc "Monospace"
+    fdesc <- fontDescriptionFromString font
 
     widgetModifyFont (getTextViewRaw out) (Just fdesc)
     widgetModifyFont (getTextViewRaw inp) (Just fdesc)
