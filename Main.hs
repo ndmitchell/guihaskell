@@ -56,7 +56,8 @@ main = do
 	(newConfValueWithDefault "foobar.exe" "executable")
    
    -- Evaluator variables
-    current <- newVarName "current_evaluator" Hugs
+    current <- newVarWithName "current_evaluator"
+	(newConfValueWithDefault Hugs "current_evaluator")
     states <- newVarName "evaluator_states" empty
 
     let f x = getCtrl window x
