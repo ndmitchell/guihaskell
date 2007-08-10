@@ -146,6 +146,7 @@ setupRelations dat@Data
     onEnterKey txtIn $ fireCommand dat
 
     -- Evaluator selection
+    injectWith (cbCompiler!text) current show
     current =< with1 (cbCompiler!text) (\x -> if null x then Hugs else read x)
     current += switchEvaluator dat
 
