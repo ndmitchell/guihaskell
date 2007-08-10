@@ -68,6 +68,7 @@ data Data = Data {
     , miCopy :: MenuItem
     , miPaste :: MenuItem
     , miTools :: MenuItem
+    , miProfile :: MenuItem
     , miPref :: MenuItem
     , miHelp :: MenuItem
     , miAbout :: MenuItem

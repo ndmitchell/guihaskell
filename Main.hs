@@ -68,7 +68,7 @@ main = do
 		  (f "cbCompiler") (f "fbFont")
 		  (f "miFile") (f "miOpen") (f "miQuit") 
 		  (f "miEdit") (f "miCut") (f "miCopy") (f "miPaste")
-		  (f "miTools") (f "miPref")
+		  (f "miTools") (f "miProfile") (f "miPref")
 		  (f "midHelp") (f "miAbout")
 		  prefWindow
 		  (g "txtExecutable") (g "txtProfCFlags") (g "txtProfRFlags")
@@ -142,7 +142,7 @@ setupRelations dat@Data
     tbRun!onClicked 	 += fireCommand dat 
     tbRestart!onClicked  += (startWithFile dat)
     tbOpen!onClicked 	 += (runFileDialog >>= setCurrentFile dat >> startWithFile dat)
-    {- tbStop!onClicked  += stopCommand dat pid -}
+    tbStop!onClicked     += stopCommand dat
     onEnterKey txtIn $ fireCommand dat
 
     -- Evaluator selection
@@ -155,7 +155,7 @@ setupRelations dat@Data
 	(\t -> if null t then Nothing else Just t) (maybe "" id)
 
     -- Evaluator runtime status 
-    tbRun!enabled =< with1 running not
+    tbRun!enabled  =<  with1 running not
     tbStop!enabled =<= running
 
     -- Tools
@@ -184,8 +184,10 @@ setupRelations dat@Data
     --enterKey += (fireCommand dat >> (txtIn!text -< " "))
 
     -- Menus
-    miQuit!onActivated  += mainQuit
-    miAbout!onActivated += (showWindow wndAbout)
+    miOpen!onActivated    += (raise $ tbOpen!onClicked)
+    miQuit!onActivated    += mainQuit
+    miProfile!onActivated += (runProf dat)
+    miAbout!onActivated   += (showWindow wndAbout)
     
     return ()
 
