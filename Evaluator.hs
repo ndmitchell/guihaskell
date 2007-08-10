@@ -23,9 +23,11 @@ import System.Directory
 import System.IO
 import System.Process
 
-import Data
 import PropLang.Variable
+
+import Data
 import Text.EscapeCodes
+import Util
 
 
 prompt :: String
@@ -56,7 +58,7 @@ startEvaluator dat args = do
 	path <- getCompilerPath name
 	case path of
 	    Nothing -> do
-		appendText dat "Compiler not found, please install"
+		errorMessage dat $ show name ++ " not found, please install."
 	    Just x -> do
 		case args of
 		    Just _ -> do
@@ -145,7 +147,7 @@ startWithFile dat = do
     path <- getVar $ filename dat
     case path of
 	Nothing -> 
-	    appendText dat "Error: No file selected.\n"
+	    errorMessage dat "No file selected for evaluation."
 	Just p  -> do
 	    stopEvaluator dat
 	    appendText dat "Evaluating file...\n"

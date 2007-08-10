@@ -33,6 +33,7 @@ import Config
 import Data
 import Evaluator
 import Prof
+import Util
 
 main :: IO ()
 main = do
@@ -178,7 +179,7 @@ fireCommand :: Data -> IO ()
 fireCommand dat@Data{txtOut=txtOut, txtIn=txtIn} = do
     handles <- getHandles dat
     case handles of
-	Nothing -> appendText dat "Error: Compiler not running\n"
+	Nothing -> errorMessage dat "Can't send command; compiler not running."
 	Just (inp,_) -> do
 	    s <- getVar (txtIn!text)
 	    running dat -< True
