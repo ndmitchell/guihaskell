@@ -187,6 +187,18 @@ fireCommand dat@Data{txtOut=txtOut, txtIn=txtIn} = do
 	    forkIO (hPutStrLn inp s)
 	    return ()
 
+--
+-- Stop the currently running process
+--
+stopCommand :: Data -> IO ()
+stopCommand dat = do
+    handles <- getHandles dat
+    case handles of
+	Nothing -> errorMessage dat "No compiler running to stop."
+	Just (inp, Left pid) -> do
+	    terminateProcess pid
+	    startEvaluator
+
 {-
 stopCommand :: Data ->  IO ()
 stopCommand dat = do 
