@@ -111,6 +111,19 @@
                 <child>
                   <widget class="GtkMenu" id="menuitem4_menu">
                     <child>
+                      <widget class="GtkMenuItem" id="miProfile">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">_Profile</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkSeparatorMenuItem" id="separatormenuitem2">
+                        <property name="visible">True</property>
+                        <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                      </widget>
+                    </child>
+                    <child>
                       <widget class="GtkImageMenuItem" id="miPref">
                         <property name="visible">True</property>
                         <property name="label">gtk-preferences</property>
@@ -259,7 +272,7 @@
                   <widget class="GtkToolItem" id="toolitem1">
                     <property name="visible">True</property>
                     <child>
-                      <widget class="GtkFontButton" id="fontbutton1">
+                      <widget class="GtkFontButton" id="fbFont">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="response_id">0</property>
@@ -294,8 +307,7 @@
                       <widget class="GtkComboBox" id="cbCompiler">
                         <property name="visible">True</property>
                         <property name="items" translatable="yes">Hugs
-GHCi
-GHC</property>
+GHCi</property>
                       </widget>
                     </child>
                   </widget>
