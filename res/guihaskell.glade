@@ -111,18 +111,32 @@
                 <child>
                   <widget class="GtkMenu" id="menuitem4_menu">
                     <child>
-                      <widget class="GtkMenuItem" id="miRun">
+                      <widget class="GtkImageMenuItem" id="miRun">
                         <property name="visible">True</property>
                         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                        <property name="label" translatable="yes">_Run</property>
+                        <property name="label" translatable="yes">_Refresh</property>
                         <property name="use_underline">True</property>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="menu-item-image2">
+                            <property name="visible">True</property>
+                            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                            <property name="stock">gtk-refresh</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                     <child>
-                      <widget class="GtkMenuItem" id="miProfile">
+                      <widget class="GtkImageMenuItem" id="miProfile">
                         <property name="visible">True</property>
                         <property name="label" translatable="yes">_Profile</property>
                         <property name="use_underline">True</property>
+                        <child internal-child="image">
+                          <widget class="GtkImage" id="menu-item-image1">
+                            <property name="visible">True</property>
+                            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                            <property name="stock">gtk-zoom-fit</property>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                     <child>
