@@ -42,7 +42,7 @@ switchEvaluator dat = do
     case hndl of
 	Nothing -> do
 	    startEvaluator dat Nothing
-	Just (Handles inp pid _ _) -> do
+	Just (Handles inp _ _ _) -> do
 	    appendText dat "\nSwitching...\n"
 	    putStrLn "Switching evaluators"
 	    hPutStrLn inp $ ""
@@ -84,7 +84,7 @@ startEvaluator dat args = do
             mapM_ app $ parseEscapeCodes c2
 
 	readErr :: Evaluator -> Handle -> IO ()
-	readErr Hugs hndl = return ()
+	readErr Hugs _ = return ()
         readErr GHCi hndl = do
             c <- hGetContents hndl
             let c2 = filter (/= '\r') c

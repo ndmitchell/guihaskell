@@ -112,7 +112,7 @@ data Data = Data {
 --
 data Handles = Handles {
     handle :: Handle,
-    pid :: ProcessHandle,
+    process :: ProcessHandle,
     outId :: ThreadId,
     errId :: ThreadId
     }
@@ -152,7 +152,7 @@ setHandles dat hndls = do
 	Just x  ->
 	    case M.lookup c s of
 		Nothing -> states dat -< M.insert c x s
-		Just x  -> states dat -< M.adjust (\_ -> x) c s
+		Just _  -> states dat -< M.adjust (\_ -> x) c s
 
 -- Set the currently open file
 setCurrentFile :: Data -> Maybe FilePath -> IO ()
@@ -166,11 +166,11 @@ setupFonts :: Data -> IO ()
 setupFonts dat@Data{txtOut=out,txtIn=inp} = do
     buf <- textviewBuffer out
     tags <- textBufferGetTagTable buf
-    font <- getVar $ (fbFont dat)!text
+    fontStr <- getVar $ (fbFont dat)!text
     
     mapM (addTags tags) [minBound..maxBound]
 
-    fdesc <- fontDescriptionFromString font
+    fdesc <- fontDescriptionFromString fontStr
 
     widgetModifyFont (getTextViewRaw out) (Just fdesc)
     widgetModifyFont (getTextViewRaw inp) (Just fdesc)

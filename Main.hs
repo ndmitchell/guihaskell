@@ -18,6 +18,7 @@ import PropLang.Value
 import PropLang.Event
 
 import Control.Monad
+import Data.Char
 import Data.Maybe
 import System.IO
 

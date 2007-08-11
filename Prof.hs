@@ -65,16 +65,16 @@ runProf dat = do
 	if not exist
 	  then errorMessage dat "Selected file does not exist."
 	  else do
-	    (inp, out, err, pid) <- runExternal "ghc" $ 
+	    (_,_,_,pid) <- runExternal "ghc" $ 
 	        Just $ words cF ++ ["-o", o] ++ [x]
 	    waitForProcess pid
 	    let exe = if inCurrentDir o then "." </> o else o 
-	    (_,_,_,pid) <- runExternal exe $ Just $ words rF
-	    waitForProcess pid
+	    (_,_,_,pid2) <- runExternal exe $ Just $ words rF
+	    waitForProcess pid2
 	    res <- runProfileParser $ o ++ ".prof"
 	    case res of
 	      Left s  -> errorMessage dat s 
-	      Right x -> runParseDialog x
+	      Right p -> runParseDialog p
       Nothing -> do
 	errorMessage dat "No file selected for profiling."
 
@@ -110,7 +110,7 @@ runProfileParser :: FilePath -> IO (Either String (Profile, [ProfileLine]))
 runProfileParser file = do
   b <- doesFileExist file
   if not b 
-    then return $ Left "No .prof file was found. Check your profile flags."
+    then return $ Left "No .prof file was found. Check that there are no compile errors or missing profiling flags."
     else do
       contents <- readFile file 
       let (title:_:flags:_:time:alloc:rest) = lines contents
