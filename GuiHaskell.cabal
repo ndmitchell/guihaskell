@@ -6,9 +6,9 @@ License-file:           LICENSE
 Author:                 Neil Mitchell
 Homepage:               http://www-users.cs.york.ac.uk/~ndm/guihaskell/
 Category:               System
-Build-Depends:          base, proplang, gtk, glade, parsec
+Build-Depends:          base>=2.0, filepath>=1.0, proplang>=0.1, gtk>=0.9.11, glade>=0.9.11, parsec
 
 Executable:             guihaskell
 Main-is:                Main.hs
-Other-modules:          Evaluator Data Commands
+Other-modules:          Config Data Evaluator Prof Util Text.EscapeCodes
 Ghc-options:            -O2 -Wall
