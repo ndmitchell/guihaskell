@@ -68,17 +68,24 @@ startEvaluator dat args = do
 	    hPutStrLn inp $ promptCmd name prompt
 	    hPutStrLn inp $ "putChar '\\01'"
 
-	    oid <- forkIO (readOut out)
-	    eid <- forkIO (readErr err)
+	    oid <- forkIO (readOut name out)
+	    eid <- forkIO (readErr name err)
 
 	    setHandles dat (Just $ Handles inp pid oid eid)
 
-        readOut hndl = do
+	readOut :: Evaluator -> Handle -> IO ()
+	readOut Hugs hndl = do
+            c <- hGetContents hndl
+            let c2 = filter (/= '\r') $ tail $ dropWhile (/= '\01') c
+            mapM_ app $ parseEscapeCodes c2
+        readOut GHCi hndl = do
             c <- hGetContents hndl
             let c2 = filter (/= '\r') $ tail $ dropWhile (/= '\01') c
             mapM_ app $ parseEscapeCodes c2
 
-        readErr hndl = do
+	readErr :: Evaluator -> Handle -> IO ()
+	readErr Hugs hndl = return ()
+        readErr GHCi hndl = do
             c <- hGetContents hndl
             let c2 = filter (/= '\r') c
             mapM_ (\x -> appendRed dat [x]) c2
