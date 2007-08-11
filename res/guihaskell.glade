@@ -314,7 +314,7 @@
                     <child>
                       <widget class="GtkComboBox" id="cbCompiler">
                         <property name="visible">True</property>
-                        <property name="items" translatable="yes">GHCI
+                        <property name="items" translatable="yes">GHCi
 Hugs</property>
                       </widget>
                     </child>
