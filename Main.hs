@@ -14,6 +14,7 @@ module Main where
 
 import PropLang.Gtk
 import PropLang.Variable
+import PropLang.Value
 import PropLang.Event
 
 import Control.Monad
@@ -46,6 +47,7 @@ main = do
     filename <- newVarWithName "selected_filename"
         (newConfValueWithDefault Nothing "selected_filename")
     tags <- newVar []
+    history <- newVar ([], [])
     
     -- Configuration variables
     profCFlags <- newVarWithName "profiler_cflags_conf" 
@@ -75,8 +77,8 @@ main = do
 		  (g "txtExecutable") (g "txtProfCFlags") (g "txtProfRFlags")
 		  (g "tbClose")
 		  aboutWindow
-                  running filename tags 
-		  profCFlags profRFlags executable
+                  running filename tags history
+		  profCFlags profRFlags executable font
 		  current states
 
     startEvaluator dat Nothing
@@ -179,11 +181,20 @@ setupRelations dat@Data
     txtProfRFlags!text -<- profRFlags
     txtProfRFlags!text =<>= profRFlags
    
-    -- This approach uses the key event for TextView, but
-    -- it's still a bit buggy
-    --enterKey <- newVarName "enter_key_pressed?" False
-    --enterKey =< with (txtIn!key) ((==) "Return")
-    --enterKey += (fireCommand dat >> (txtIn!text -< " "))
+    -- Fixed some of the key event bugs. This should work.
+    -- The enter key still doesn't work though...
+    --enterKey <-  newVarWithName "enter_key_pressed?"
+    --               (newPredValue "" ((==) "Return"))
+    --enterKey =<= (txtIn!key)
+    --enterKey +=  (fireCommand dat)
+    upKey    <-  newVarWithName "arrow_up_pressed?"
+	            (newPredValue "" ((==) "Up"))
+    upKey    =<= (txtIn!key)
+    upKey    +=  (nextHistory dat)
+    downKey  <-  newVarWithName "arrow_down_pressed?"
+	            (newPredValue "" ((==) "Down"))
+    downKey  =<= (txtIn!key)
+    downKey  +=  (previousHistory dat)
 
     -- Menus
     miOpen!onActivated    += (raise $ tbOpen!onClicked)
@@ -199,6 +210,7 @@ setupRelations dat@Data
 fireCommand :: Data -> IO ()
 fireCommand dat@Data{txtOut=txtOut, txtIn=txtIn} = do
     handles <- getHandles dat
+    hist <- getVar $ history dat
     case handles of
 	Nothing -> errorMessage dat "Can't send command; compiler not running."
 	Just (Handles inp _ _ _) -> do
@@ -206,7 +218,17 @@ fireCommand dat@Data{txtOut=txtOut, txtIn=txtIn} = do
 	    running dat -< True
 	    appendText dat (s ++ "\n")
 	    forkIO (hPutStrLn inp s)
-	    return ()
+	    txtIn!text -< ""
+	    if null $ dropWhile isSpace s
+	      then history dat -< ([], fst hist ++ snd hist)
+	      else history dat -< ([], s : fst hist ++ snd hist)
+	
+refreshCommand :: Data -> IO ()
+refreshCommand dat = do
+    path <- getVar $ filename dat
+    case path of
+	Nothing -> startEvaluator dat Nothing
+	Just _  -> startWithFile dat
 
 --
 -- Stop the currently running process
@@ -223,6 +245,28 @@ stopCommand dat = do
 	    waitForProcess pid
 	    setHandles dat Nothing
 	    startEvaluator dat Nothing
+
+-- Get the next oldest command from history
+nextHistory :: Data -> IO ()
+nextHistory dat@Data {txtIn=txtIn} = do
+    h <- getVar $ history dat
+    case h of
+	(xs, y:ys) -> do 
+	    (txtIn!text) -< y
+	    history dat  -< (y:xs, ys)
+	_             -> return ()
+
+-- Get a command that's one newer
+previousHistory :: Data -> IO ()
+previousHistory dat@Data {txtIn=txtIn} = do
+    h <- getVar $ history dat
+    case h of
+	(x:x2:xs, ys) -> do
+	    (txtIn!text) -< x2
+	    history dat  -< (x2:xs, x:ys)
+	_          -> do
+	    (txtIn!text) -< ""
+	    history dat  -< ([], fst h ++ snd h)
 
 {-
 stopCommand :: Data ->  IO ()

@@ -86,6 +86,7 @@ data Data = Data {
     , running :: Var Bool -- is the code executing
     , filename :: Var (Maybe FilePath) -- the main file loaded
     , outputTags :: Var [String]
+    , history :: Var ([String], [String]) -- command history
 
     -- Configuration variables
     , profCFlags :: Var String
