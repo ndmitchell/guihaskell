@@ -147,7 +147,7 @@ setupRelations dat@Data
 
     -- Evaluator events
     tbRun!onClicked 	 += fireCommand dat 
-    tbRestart!onClicked  += (startWithFile dat)
+    tbRestart!onClicked  += refreshCommand dat
     tbOpen!onClicked 	 += (runFileDialog >>= setCurrentFile dat >> startWithFile dat)
     tbStop!onClicked     += stopCommand dat
     onEnterKey txtIn $ fireCommand dat
