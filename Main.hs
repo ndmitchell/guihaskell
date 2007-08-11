@@ -61,7 +61,7 @@ main = do
    
    -- Evaluator variables
     current <- newVarWithName "current_evaluator"
-	(newConfValueWithDefault Hugs "current_evaluator")
+	(newConfValueWithDefault GHCi "current_evaluator")
     states <- newVarName "evaluator_states" empty
 
     let f x = getCtrl window x
