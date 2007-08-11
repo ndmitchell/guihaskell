@@ -12,9 +12,7 @@
 
 module Prof where
 
-import Control.Concurrent
 import Data.Char
-import Data.Tree
 import System.Directory (doesFileExist)
 import System.FilePath
 import System.IO

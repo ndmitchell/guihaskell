@@ -74,6 +74,7 @@ main = do
 		  (f "cbCompiler") (f "fbFont")
 		  (f "miFile") (f "miOpen") (f "miQuit") 
 		  (f "miEdit") (f "miCut") (f "miCopy") (f "miPaste")
+		  (f "miView")
 		  (f "miTools") (f "miRun") (f "miProfile") (f "miPref")
 		  (f "midHelp") (f "miAbout")
 		  prefWindow
