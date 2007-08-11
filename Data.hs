@@ -93,6 +93,7 @@ data Data = Data {
     , profCFlags :: Var String
     , profRFlags :: Var String
     , executable :: Var FilePath
+    , font :: Var String
 
     --
     -- Stores the current evaluator and

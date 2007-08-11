@@ -56,6 +56,8 @@ main = do
 	(newConfValueWithDefault "+RTS -p" "profRFlags")
     executable <- newVarWithName "executable_name"
 	(newConfValueWithDefault "foobar.exe" "executable")
+    font <- newVarWithName "textview_font"
+	(newConfValueWithDefault "Monospace 12" "textview_font")
    
    -- Evaluator variables
     current <- newVarWithName "current_evaluator"
@@ -82,8 +84,8 @@ main = do
 		  current states
 
     startEvaluator dat Nothing
-    setupFonts dat
     setupRelations dat
+    setupFonts dat
 
     showWindowMain window
 
@@ -139,6 +141,7 @@ setupRelations dat@Data
     , executable     =executable
     , profCFlags     =profCFlags
     , profRFlags     =profRFlags
+    , font           =font
     , current        =current
     } = do
 
@@ -171,6 +174,8 @@ setupRelations dat@Data
     miPref!onActivated 	 += (showWindow wndPref)
     -- Hack
     tbClose!onClicked	 += (widgetHide $ getWindowRaw wndPref)
+    fbFont!text          -<- font
+    fbFont!text          =<>= font
     fbFont!text          += setupFonts dat
 
     -- Need "-<-" first to populate GUI at startup
