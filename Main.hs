@@ -71,7 +71,7 @@ main = do
 		  (f "cbCompiler") (f "fbFont")
 		  (f "miFile") (f "miOpen") (f "miQuit") 
 		  (f "miEdit") (f "miCut") (f "miCopy") (f "miPaste")
-		  (f "miTools") (f "miProfile") (f "miPref")
+		  (f "miTools") (f "miRun") (f "miProfile") (f "miPref")
 		  (f "midHelp") (f "miAbout")
 		  prefWindow
 		  (g "txtExecutable") (g "txtProfCFlags") (g "txtProfRFlags")
@@ -123,6 +123,7 @@ setupRelations dat@Data
     , miFile         =miFile
     , miOpen         =miOpen
     , miQuit         =miQuit
+    , miRun          =miRun
     , miProfile      =miProfile
     , miPref         =miPref
     , miHelp         =miHelp
@@ -199,6 +200,9 @@ setupRelations dat@Data
     -- Menus
     miOpen!onActivated    += (raise $ tbOpen!onClicked)
     miQuit!onActivated    += mainQuit
+    -- TODO: This should also run "main" too like in most IDEs, 
+    -- but concurrency makes that weird
+    miRun!onActivated     += refreshCommand dat
     miProfile!onActivated += (runProf dat)
     miAbout!onActivated   += (showWindow wndAbout)
     
