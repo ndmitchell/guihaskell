@@ -28,7 +28,7 @@ import Graphics.UI.Gtk hiding (Action, Window, ComboBox, MenuItem, TextView, Too
 import Graphics.UI.Gtk.Glade
 
 import System.Exit
-import System.Posix.Signals
+--import System.Posix.Signals
 import System.Process
 
 import Config
