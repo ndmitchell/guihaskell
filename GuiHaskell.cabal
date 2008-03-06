@@ -11,7 +11,8 @@ License-file:           LICENSE
 Author:                 Neil Mitchell
 Homepage:               http://www-users.cs.york.ac.uk/~ndm/guihaskell/
 Category:               Development
-Build-Depends:          base>=2.0, filepath>=1.0, proplang>=0.1, gtk>=0.9.11, glade>=0.9.11, parsec
+Build-Type:             Simple
+Build-Depends:          base>=2.0, filepath>=1.0, proplang>=0.1, gtk>=0.9.11, glade>=0.9.11, parsec, process, containers, directory
 
 Executable:             guihaskell
 Main-is:                Main.hs
