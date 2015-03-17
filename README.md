@@ -5,3 +5,8 @@ This was an attempt at writing a GUI to vaious Haskell implementations (Hugs, GH
 Note that GuiHaskell requires PropLang, an as yet entirely undocumented side project of mine.
 
 Now the code is dead, but feel free to use/steal it as you wish.
+
+![](https://raw.githubusercontent.com/ndmitchell/guihaskell/master/guihaskell-linux.png)
+
+![](https://raw.githubusercontent.com/ndmitchell/guihaskell/master/guihaskell-windows.png)
+
